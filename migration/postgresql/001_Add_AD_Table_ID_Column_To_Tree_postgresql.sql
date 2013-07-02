@@ -15,7 +15,7 @@ ALTER TABLE AD_Tree ADD COLUMN AD_Table_ID NUMERIC(10) DEFAULT NULL
 
 -- May 11, 2013 12:37:22 AM VET
 -- Dynamic Tree
-INSERT INTO AD_Field (AD_Client_ID,AD_Column_ID,AD_Field_ID,AD_Org_ID,AD_Tab_ID,Created,CreatedBy,Description,DisplayLength,EntityType,Help,HideInListView,IsActive,IsCentrallyMaintained,IsDisplayed,IsEncrypted,IsFieldOnly,IsHeading,IsReadOnly,IsSameLine,Name,PreferredWidth,SeqNo,SortNo,Updated,UpdatedBy) VALUES (0,65355,66746,0,243,TO_TIMESTAMP('2013-05-11 00:37:21','YYYY-MM-DD HH24:MI:SS'),100,'Database Table information',0,'ECA02','The Database Table provides the information of the table definition','N','Y','Y','Y','N','N','N','N','N','Table',0,100,0,TO_TIMESTAMP('2013-05-11 00:37:21','YYYY-MM-DD HH24:MI:SS'),100)
+INSERT INTO AD_Field (AD_Client_ID,AD_Column_ID,AD_Field_ID,AD_Org_ID,AD_Tab_ID,Created,CreatedBy,Description,DisplayLength,EntityType,Help,IsActive,IsCentrallyMaintained,IsDisplayed,IsEncrypted,IsFieldOnly,IsHeading,IsReadOnly,IsSameLine,Name,SeqNo,SortNo,Updated,UpdatedBy) VALUES (0,65355,66746,0,243,TO_TIMESTAMP('2013-05-11 00:37:21','YYYY-MM-DD HH24:MI:SS'),100,'Database Table information',0,'ECA02','The Database Table provides the information of the table definition','Y','Y','Y','N','N','N','N','N','Table',100,0,TO_TIMESTAMP('2013-05-11 00:37:21','YYYY-MM-DD HH24:MI:SS'),100)
 ;
 
 -- May 11, 2013 12:37:22 AM VET
