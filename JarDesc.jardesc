@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <jardesc>
-    <jar path="Custom_Template/packages/Custom_Template/lib/Custom_Template.jar"/>
-    <options buildIfNeeded="true" compress="true" descriptionLocation="/Custom_Template/JarDesc.jardesc" exportErrors="true" exportWarnings="true" includeDirectoryEntries="false" overwrite="false" saveDescription="true" storeRefactorings="false" useSourceFolders="false"/>
+    <jar path="DynamicTree/packages/DynamicTree/lib/DynamicTree.jar"/>
+    <options buildIfNeeded="true" compress="true" descriptionLocation="/DynamicTree/JarDesc.jardesc" exportErrors="true" exportWarnings="true" includeDirectoryEntries="false" overwrite="false" saveDescription="true" storeRefactorings="false" useSourceFolders="false"/>
     <storedRefactorings deprecationInfo="true" structuralOnly="false"/>
     <selectedProjects/>
     <manifest generateManifest="true" manifestLocation="" manifestVersion="1.0" reuseManifest="false" saveManifest="false" usesManifest="true">
@@ -11,8 +11,6 @@
         </sealing>
     </manifest>
     <selectedElements exportClassFiles="true" exportJavaFiles="false" exportOutputFolder="false">
-        <javaElement handleIdentifier="=GetWeight/base"/>
-        <javaElement handleIdentifier="=GetWeight/test"/>
-        <javaElement handleIdentifier="=GetWeight/client"/>
+        <javaElement handleIdentifier="=DynamicTree/patches"/>
     </selectedElements>
 </jardesc>
