@@ -653,7 +653,10 @@ public class GridController extends CPanel
 			//	Hide old method
 			//if (AD_Tree_ID == 0)
 				//AD_Tree_ID = MTree.getDefaultAD_Tree_ID (
-					//Env.getAD_Client_ID(Env.getCtx()), m_mTab.getKeyColumnName());*/
+					//Env.getAD_Client_ID(Env.getCtx()), m_mTab.getKeyColumnName());
+			if (AD_Tree_ID == 0)
+				AD_Tree_ID = MTree.getDefaultAD_Tree_ID (
+					Env.getAD_Client_ID(Env.getCtx()), m_mTab.getAD_Table_ID());
 			//	End Yamel Senih
 			if (m_tree != null)
 				m_tree.initTree (AD_Tree_ID);
