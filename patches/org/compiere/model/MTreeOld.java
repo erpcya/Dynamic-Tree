@@ -44,7 +44,7 @@ import org.compiere.util.Env;
  *  @author		<a href="mailto:yamelsenih@gmail.com">Yamel Senih</a>
  *  			<li> Add Support to Dynamic Tree 2013/07/02 16:42:57
  */
-public class MTree extends X_AD_Tree
+public class MTreeOld extends X_AD_Tree
 {
 	/**
 	 * 
@@ -74,13 +74,13 @@ public class MTree extends X_AD_Tree
 	 *	@param clientTree the tree is displayed on the java client (not on web)
 	 *  @param trxName transaction
 	 */
-	public MTree (Properties ctx, int AD_Tree_ID, 
+	public MTreeOld (Properties ctx, int AD_Tree_ID, 
 		boolean editable, boolean clientTree, String trxName)
 	{
 		this (ctx, AD_Tree_ID, editable, clientTree, false, trxName);
 	}   //  MTree
 
-	public MTree (Properties ctx, int AD_Tree_ID, 
+	public MTreeOld (Properties ctx, int AD_Tree_ID, 
 			boolean editable, boolean clientTree, boolean allNodes, String trxName)
 	{
 		this (ctx, AD_Tree_ID, trxName);
@@ -113,7 +113,7 @@ public class MTree extends X_AD_Tree
 	private HashMap<Integer, ArrayList<Integer>> m_nodeIdMap;
 
 	/**	Logger			*/
-	private static CLogger s_log = CLogger.getCLogger(MTree.class);
+	private static CLogger s_log = CLogger.getCLogger(MTreeOld.class);
 	
 	//	Yamel Senih Add Method from MTree_Base
 	
@@ -136,7 +136,7 @@ public class MTree extends X_AD_Tree
 	 *	@param AD_Tree_ID id
 	 *	@param trxName transaction
 	 */
-	public MTree (Properties ctx, int AD_Tree_ID, String trxName)
+	public MTreeOld (Properties ctx, int AD_Tree_ID, String trxName)
 	{
 		super(ctx, AD_Tree_ID, trxName);
 		if (AD_Tree_ID == 0)
@@ -154,7 +154,7 @@ public class MTree extends X_AD_Tree
 	 * @param rs
 	 * @param trxName
 	 */
-	public MTree (Properties ctx, ResultSet rs, String trxName)
+	public MTreeOld (Properties ctx, ResultSet rs, String trxName)
 	{
 		super(ctx, rs, trxName);
 	}	//	MTree_Base
@@ -166,7 +166,7 @@ public class MTree extends X_AD_Tree
 	 *	@param name name
 	 *	@param treeType
 	 */
-	public MTree (MClient client, String name, String treeType)
+	public MTreeOld (MClient client, String name, String treeType)
 	{
 		this (client.getCtx(), 0, client.get_TrxName());
 		setClientOrg (client);
@@ -181,7 +181,7 @@ public class MTree extends X_AD_Tree
 	 *	@param TreeType tree type
 	 *	@param trxName transaction
 	 */
-	public MTree (Properties ctx, String Name, String TreeType,  
+	public MTreeOld (Properties ctx, String Name, String TreeType,  
 		String trxName)
 	{
 		super(ctx, 0, trxName);
@@ -192,7 +192,7 @@ public class MTree extends X_AD_Tree
 	}	//	MTree_Base
 	
 	/**	Cache						*/
-	private static CCache<Integer,MTree> s_cache = new CCache<Integer,MTree>("AD_Tree", 10);
+	private static CCache<Integer,MTreeOld> s_cache = new CCache<Integer,MTreeOld>("AD_Tree", 10);
 	
 	/**
 	 * 	Add Node to correct tree
@@ -297,13 +297,13 @@ public class MTree extends X_AD_Tree
 	 *	@param trxName transaction
 	 *	@return MTree_Base
 	 */
-	public static MTree get (Properties ctx, int AD_Tree_ID, String trxName)
+	public static MTreeOld get (Properties ctx, int AD_Tree_ID, String trxName)
 	{
 		Integer key = new Integer (AD_Tree_ID);
-		MTree retValue = (MTree) s_cache.get (key);
+		MTreeOld retValue = (MTreeOld) s_cache.get (key);
 		if (retValue != null)
 			return retValue;
-		retValue = new MTree (ctx, AD_Tree_ID, trxName);
+		retValue = new MTreeOld (ctx, AD_Tree_ID, trxName);
 		if (retValue.get_ID () != 0)
 			s_cache.put (key, retValue);
 		return retValue;
@@ -598,7 +598,7 @@ public class MTree extends X_AD_Tree
 		//	Not updated
 		if (!error && s_TableIDs.size() < 3)
 		{
-			MTree xx = get (Env.getCtx(), 10, trxName);
+			MTreeOld xx = get (Env.getCtx(), 10, trxName);
 			xx.updateTrees();
 			fillUserTables(null);
 		}

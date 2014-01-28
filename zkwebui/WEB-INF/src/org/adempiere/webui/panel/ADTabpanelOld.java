@@ -93,7 +93,7 @@ import org.zkoss.zul.Treeitem;
  * @author	<a href="mailto:yamelsenih@gmail.com">Yamel Senih</a>
  *  			<li> Add Support to Dynamic Tree 2013/07/02 16:42:57
  */
-public class ADTabpanel extends Div implements Evaluatee, EventListener,
+public class ADTabpanelOld extends Div implements Evaluatee, EventListener,
 DataStatusListener, IADTabpanel, VetoableChangeListener
 {
 	/**
@@ -105,7 +105,7 @@ DataStatusListener, IADTabpanel, VetoableChangeListener
 
     static
     {
-        logger = CLogger.getCLogger(ADTabpanel.class);
+        logger = CLogger.getCLogger(ADTabpanelOld.class);
     }
 
     private GridTab           gridTab;
@@ -150,7 +150,7 @@ DataStatusListener, IADTabpanel, VetoableChangeListener
 
 	private boolean m_vetoActive = false;
 
-	public ADTabpanel()
+	public ADTabpanelOld()
 	{
         init();
     }
@@ -1039,8 +1039,8 @@ DataStatusListener, IADTabpanel, VetoableChangeListener
 		includedPanel.add(ep);
 		Group group = includedTab.get(adTabId);
 		ep.group = group;
-		if (tabPanel instanceof ADTabpanel) {
-			ADTabpanel atp = (ADTabpanel) tabPanel;
+		if (tabPanel instanceof ADTabpanelOld) {
+			ADTabpanelOld atp = (ADTabpanelOld) tabPanel;
 			atp.listPanel.setPageSize(-1);
 		}
 		ADWindowPanel panel = new ADWindowPanel(ctx, windowNo, gridWindow, tabIndex, tabPanel);
