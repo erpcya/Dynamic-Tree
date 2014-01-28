@@ -858,7 +858,10 @@ public class MTree extends X_AD_Tree {
 	 */
 	public String getSourceTableName (boolean tableNameOnly)
 	{
-		String tableName = getSourceTableName(getTreeType());
+		//String tableName = getSourceTableName(getTreeType());
+		int AD_Table_ID = getAD_Table_ID();
+		String tableName = MTable.getTableName (getCtx(), AD_Table_ID);
+		//	
 		if (tableNameOnly)
 			return tableName;
 		if ("M_Product".equals(tableName))

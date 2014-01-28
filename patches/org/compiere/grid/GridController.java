@@ -447,8 +447,12 @@ public class GridController extends CPanel
 		//  Tree Graphics Layout
 		int AD_Tree_ID = 0;
 		if (m_mTab.isTreeTab())
+			//	Yamel Senih, Old Method
+			//AD_Tree_ID = MTree.getDefaultAD_Tree_ID (
+				//Env.getAD_Client_ID(Env.getCtx()), m_mTab.getKeyColumnName());
 			AD_Tree_ID = MTree.getDefaultAD_Tree_ID (
-				Env.getAD_Client_ID(Env.getCtx()), m_mTab.getKeyColumnName());
+					Env.getAD_Client_ID(Env.getCtx()), m_mTab.getAD_Table_ID());
+		//	End Yamel Senih
 		if (m_mTab.isTreeTab() && AD_Tree_ID != 0)
 		{
 			m_tree = new VTreePanel(m_WindowNo, false, true);
