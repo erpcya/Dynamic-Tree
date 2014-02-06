@@ -2025,7 +2025,7 @@ public final class MRole extends X_AD_Role
 			if (getIdColumnName(TableName) == null) continue;
 			keyColumnName += getIdColumnName(TableName); 
 	
-			//log.fine("addAccessSQL - " + TableName + "(" + AD_Table_ID + ") " + keyColumnName);
+			log.fine("addAccessSQL - " + TableName + "(" + AD_Table_ID + ") " + keyColumnName);
 			String recordWhere = getRecordWhere (AD_Table_ID, keyColumnName, rw);
 			if (recordWhere.length() > 0)
 			{

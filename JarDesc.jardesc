@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <jardesc>
-    <jar path="DynamicTree/packages/DynamicTree/lib/DynamicTree.jar"/>
-    <options buildIfNeeded="true" compress="true" descriptionLocation="/DynamicTree/JarDesc.jardesc" exportErrors="true" exportWarnings="true" includeDirectoryEntries="false" overwrite="false" saveDescription="true" storeRefactorings="false" useSourceFolders="false"/>
+    <jar path="Dynamic-Tree/packages/Dynamic-Tree/lib/Dynamic-Tree.jar"/>
+    <options buildIfNeeded="true" compress="true" descriptionLocation="/Dynamic-Tree/JarDesc.jardesc" exportErrors="true" exportWarnings="true" includeDirectoryEntries="false" overwrite="false" saveDescription="true" storeRefactorings="false" useSourceFolders="false"/>
     <storedRefactorings deprecationInfo="true" structuralOnly="false"/>
     <selectedProjects/>
     <manifest generateManifest="true" manifestLocation="" manifestVersion="1.0" reuseManifest="false" saveManifest="false" usesManifest="true">
@@ -11,6 +11,7 @@
         </sealing>
     </manifest>
     <selectedElements exportClassFiles="true" exportJavaFiles="false" exportOutputFolder="false">
-        <javaElement handleIdentifier="=DynamicTree/patches"/>
+        <javaElement handleIdentifier="=Dynamic-Tree/patches"/>
+        <javaElement handleIdentifier="=Dynamic-Tree/zkwebui\/WEB-INF\/src"/>
     </selectedElements>
 </jardesc>
