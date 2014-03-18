@@ -204,11 +204,11 @@ DataStatusListener, IADTabpanel, VetoableChangeListener
 					Env.getAD_Client_ID(Env.getCtx()), gridTab.getAD_Table_ID());
 		//	End Yamel Senih
 		if (gridTab.isTreeTab() && AD_Tree_ID != 0)
-		{
+		{			
 			Borderlayout layout = new Borderlayout();
 			layout.setParent(this);
 			layout.setStyle("width: 100%; height: 100%; position: absolute;");
-
+			
 			treePanel = new ADTreePanel();
 			West west = new West();
 			west.appendChild(treePanel);
@@ -526,7 +526,11 @@ DataStatusListener, IADTabpanel, VetoableChangeListener
 				//Env.getAD_Client_ID(Env.getCtx()), gridTab.getKeyColumnName());
         	int AD_Tree_ID = MTree.getDefaultAD_Tree_ID (
 					Env.getAD_Client_ID(Env.getCtx()), gridTab.getAD_Table_ID());
-        	treePanel.initTree(AD_Tree_ID, windowNo);
+        	//	Where Clause
+        	String whereClause = gridTab.getWhereClause();
+			whereClause = Env.parseContext(Env.getCtx(), windowNo, whereClause, false, false);
+			//	Where
+        	treePanel.initTree(AD_Tree_ID, windowNo, whereClause);
         }
         //	End Yamel Senih
         
