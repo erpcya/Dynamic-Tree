@@ -17,7 +17,7 @@
   <path id="compilezk.classpath">
     <pathelement location="${adempiere.trunk}/zkwebui/WEB-INF/classes"/>
   	
-  	<fileset dir="${basedir}/packages/DynamicTree/lib">
+  	<fileset dir="${basedir}/packages/Dynamic-Tree/lib">
   	  	      <include name="*.jar"/>
   	</fileset>
     <fileset dir="${adempiere.trunk}/lib">
