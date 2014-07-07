@@ -12,7 +12,19 @@
   <property name="zkclasses" value="${dist}/zkclass/WEB-INF/classes"/>
   <property name="class" value="${dist}/class"/>
   <property name="zkjar" value="${dist}/zkclass"/>
-
+  
+  <property name="build.dir" value="build"/>
+  <property name="dist.dir" value="${project.trunk}/packages/${project-name}/lib"/>
+  <property name="jar.name" value="${project-name}"/>
+  
+	 <!-- set path to include the necessary jar files for javac -->
+    <path id="project.class.path">
+        <pathelement path="${classpath}"/>
+		<fileset dir="${adempiere.trunk}/lib">
+    	    <include name="*.jar"/>
+    	</fileset>
+    </path>
+  
   <!-- @author Carlos Parada Set Path --> 
   <path id="compilezk.classpath">
     <pathelement location="${adempiere.trunk}/zkwebui/WEB-INF/classes"/>
@@ -29,7 +41,7 @@
   </path>
 	
   <!-- @author Carlos Parada Compile ZK Directory --> 
-  <target name="zkcompile" depends="init_zk"
+  <target name="zkcompile" depends="dist,init_zk"
         description="compile the source " >
     <!-- Compile the zk java code from ${src} into ${zkclasses} -->
     <echo message="Directorio Fuente ${zksrc}"/>
@@ -61,5 +73,27 @@
   <target name="init" depends="clean_zk,init_zk">
 	<echo message="Initialize Folders "/>
   </target>
+	
+  
+   <!-- =========================================== -->
+	<!-- Distribution                                -->
+	<!-- =========================================== -->
+	<target name="dist" depends="compile">
+		<!-- put everything from ${build.dir} into the ${jar.name}.jar file -->
+		<jar jarfile="${dist.dir}/${jar.name}.jar" basedir="${build.dir}"/>
+	</target>
+	
+	<target name="compile" depends="makedir">
+    <!-- compile the java code from ${src} into ${build.dir} -->
+    <javac target="1.6" encoding="UTF-8" fork="true" destdir="${build.dir}" deprecation="on" debug="on" memoryinitialsize="512m" memorymaximumsize="512m">
+      	<src path="${patches}"/>
+		<classpath refid="project.class.path"/>
+		</javac>
+  	</target>
+  	
+	<target name="makedir" depends="init" unless="dist.dir.exists">
+    	<!-- create the distribution directory if not available -->
+    	<mkdir dir="${dist.dir}"/>
+  	</target>
 	
 </project>
