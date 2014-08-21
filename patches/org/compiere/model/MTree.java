@@ -124,6 +124,64 @@ public class MTree extends X_AD_Tree {
 		//	End Yamel Senih
 	}   //  MTree
 
+
+	//	Dixon Martinez
+	//	20/08/2014
+	//	Add support to create tree of process create client
+	/**
+	 * 	Parent Constructor
+	 *	@param client client
+	 *	@param name name
+	 *	@param treeType
+	 */
+	public MTree (MClient client, String name, String treeType)
+	{
+		this (client.getCtx(), 0, client.get_TrxName());
+		setClientOrg (client);
+		setName (name);
+		setTreeType (treeType);
+		setTable_ID(treeType);
+	}	//	MTree_Base
+
+	/**
+	 * Set Table ID of type tree
+	 * @author <a href="mailto:dixon.22martinez@gmail.com">Dixon Martinez</a> 20/08/2014, 22:40:26
+	 * @param treeType
+	 * @return void
+	 */
+	private void setTable_ID(String treeType) {
+		int table_ID = 0;
+		if(TREETYPE_Activity.equals(treeType))
+			table_ID = X_C_Activity.Table_ID;
+		else if (TREETYPE_BPartner.equals(treeType))
+			table_ID = X_C_BPartner.Table_ID;
+		else if (TREETYPE_Campaign.equals(treeType))
+			table_ID = X_C_Campaign.Table_ID;
+		else if (TREETYPE_CMContainer.equals(treeType))
+			table_ID = X_CM_Container.Table_ID;
+		else if (TREETYPE_CMContainerStage.equals(treeType))
+			table_ID = X_CM_CStage.Table_ID;
+		else if (TREETYPE_CMMedia.equals(treeType))
+			table_ID = X_CM_Media.Table_ID;
+		else if (TREETYPE_CMTemplate.equals(treeType))
+			table_ID = X_CM_Template.Table_ID;
+		else if (TREETYPE_ElementValue.equals(treeType))
+			table_ID = X_C_ElementValue.Table_ID;
+		else if (TREETYPE_Organization.equals(treeType))
+			table_ID = X_AD_Org.Table_ID;
+		else if (TREETYPE_Product.equals(treeType))
+			table_ID = X_M_Product.Table_ID;
+		else if (TREETYPE_Project.equals(treeType))
+			table_ID = X_C_Project.Table_ID;
+		else if (TREETYPE_SalesRegion.equals(treeType))
+			table_ID = X_C_SalesRegion.Table_ID;
+
+		setAD_Table_ID(table_ID);
+		
+	}
+
+	//	End Dixon Martinez
+
 	/** Is Tree editable    	*/
 	private boolean     		m_editable = false;
 	/** Root Node                   */
