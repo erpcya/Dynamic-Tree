@@ -457,7 +457,7 @@ public class GridController extends CPanel
 		{
 			m_tree = new VTreePanel(m_WindowNo, false, true);
 			if (m_mTab.getTabNo() == 0){	//	initialize other tabs later
-				String whereClause = m_mTab.getWhereClause();
+				String whereClause = m_mTab.getWhereExtended();
 				whereClause = Env.parseContext(Env.getCtx(), m_WindowNo, whereClause, false, false);
 				//	Init Tree
 				m_tree.initTree(AD_Tree_ID, whereClause);	
@@ -665,9 +665,9 @@ public class GridController extends CPanel
 			if (AD_Tree_ID == 0)
 				AD_Tree_ID = MTree.getDefaultAD_Tree_ID (
 					Env.getAD_Client_ID(Env.getCtx()), m_mTab.getAD_Table_ID());
-			//	End Yamel Senih
+			//	Add Where Extended
 			if (m_tree != null){
-				String whereClause = m_mTab.getWhereClause();
+				String whereClause = m_mTab.getWhereExtended();
 				whereClause = Env.parseContext(Env.getCtx(), m_WindowNo, whereClause, false, false);
 				//	Init Tree
 				m_tree.initTree(AD_Tree_ID, whereClause);

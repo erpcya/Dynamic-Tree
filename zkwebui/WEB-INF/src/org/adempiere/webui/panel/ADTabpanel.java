@@ -526,8 +526,8 @@ DataStatusListener, IADTabpanel, VetoableChangeListener
 				//Env.getAD_Client_ID(Env.getCtx()), gridTab.getKeyColumnName());
         	int AD_Tree_ID = MTree.getDefaultAD_Tree_ID (
 					Env.getAD_Client_ID(Env.getCtx()), gridTab.getAD_Table_ID());
-        	//	Where Clause
-        	String whereClause = gridTab.getWhereClause();
+        	//	Where Extended
+        	String whereClause = gridTab.getWhereExtended();
 			whereClause = Env.parseContext(Env.getCtx(), windowNo, whereClause, false, false);
 			//	Where
         	treePanel.initTree(AD_Tree_ID, windowNo, whereClause);
