@@ -731,7 +731,11 @@ public class GridController extends CPanel
 		//  Update UI
 		if (!isSingleRow())
 			vTable.autoSize(true);
-		activateChilds();
+		//	Yamel Senih 2014-09-29, 20:31:53 Refresh tree
+		//	Old Method
+		//activateChilds();
+		activate();
+		//	End Yamel Senih
 	}   //  query
 
 	/*
