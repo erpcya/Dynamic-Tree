@@ -48,6 +48,19 @@ import org.compiere.util.Env;
  *  		<li> Add Support to Dynamic Tree 2013/07/02 16:42:57
  */
 public class MTree extends X_AD_Tree {
+	
+	/**
+	 * Set Contructor with ResultSet
+	 * *** Constructor ***
+	 * @author <a href="mailto:carlosaparadam@gmail.com">Carlos Parada</a> 21/10/2014, 00:48:29
+	 * @param ctx
+	 * @param rs
+	 * @param trxName
+	 */
+	public MTree (Properties ctx, ResultSet rs, String trxName)
+    {
+      super (ctx, rs, trxName);
+    }
 	/**
 	 * 
 	 */
