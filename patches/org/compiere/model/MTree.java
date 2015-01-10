@@ -616,6 +616,74 @@ public class MTree extends X_AD_Tree {
 				sqlNode.append(" IS NOT NULL))");
 			}
 		}
+		//	Dixon Martinez 2015-01-09 
+		//	Add support for custom translate trees
+		else if (getTreeType().equals(TREETYPE_CustomTree))
+		{
+			boolean base = Env.isBaseLanguage(p_ctx, columnNameX);
+			sourceTable = "m";
+			String recordClause = "";
+			if("SPS_SyncMenu".equals(columnNameX))
+				recordClause = "";
+			else if("SPS_Menu".equals(columnNameX))
+				recordClause = "t.SPS_Window_ID, t.AD_Process_ID, t.AD_Form_ID";
+				
+			if (base){
+				sqlNode.append("SELECT t." + columnNameX + "_ID, ")
+					.append("t.Name, t.Description, t.IsSummary, " + color + " AS Action ")
+					.append(recordClause.length() > 0 ? ", " + recordClause : "")
+					.append(" FROM " + fromClause )
+					;
+			}else {
+				sqlNode.append("SELECT t." + columnNameX + "_ID, ")
+					.append("COALESCE(m.Name, t.Name) AS Name, COALESCE(m.Description, t.Description) AS Description, t.IsSummary,  ")
+					.append( color + " AS Action ")
+					.append(recordClause.length() > 0 ? ", " + recordClause : "")
+					.append(" FROM " + fromClause )
+					.append(" INNER JOIN " + columnNameX + "_Trl m ON (t. " + columnNameX + "_ID = m." + columnNameX + "_ID)")
+				;
+			}
+				/*
+				sqlNode.append("SELECT sm.SPS_SyncMenu_ID, sm.Name,sm.Description,sm.IsSummary, ''Action FROM SPS_SyncMenu sm");
+			else
+				sqlNode.append("SELECT sm.SPS_SyncMenu_ID, smt.Name,smt.Description,sm.IsSummary, ''Action FROM SPS_SyncMenu sm"
+						+ " INNER JOIN SPS_SyncMenu_Trl smt ON (sm.SPS_SyncMenu_ID = smt.SPS_SyncMenu_ID)");
+			
+			if (!base)
+				sqlNode.append(" WHERE sm.SPS_SyncMenu_ID=smt.SPS_SyncMenu_ID AND smt.AD_Language='")
+					.append(Env.getAD_Language(p_ctx)).append("'");
+			if (!m_editable)
+			{
+				boolean hasWhere = sqlNode.indexOf(" WHERE ") != -1;
+				sqlNode.append(hasWhere ? " AND " : " WHERE ").append("m.IsActive='Y' ");
+			}
+			//	Do not show Beta
+			if (!MClient.get(getCtx()).isUseBetaFunctions())
+			{
+				boolean hasWhere = sqlNode.indexOf(" WHERE ") != -1;
+				sqlNode.append(hasWhere ? " AND " : " WHERE ");
+				sqlNode.append("(m.AD_Window_ID IS NULL OR EXISTS (SELECT * FROM AD_Window w WHERE m.AD_Window_ID=w.AD_Window_ID AND w.IsBetaFunctionality='N'))")
+					.append(" AND (m.AD_Process_ID IS NULL OR EXISTS (SELECT * FROM AD_Process p WHERE m.AD_Process_ID=p.AD_Process_ID AND p.IsBetaFunctionality='N'))")
+					.append(" AND (m.AD_Workflow_ID IS NULL OR EXISTS (SELECT * FROM AD_Workflow wf WHERE m.AD_Workflow_ID=wf.AD_Workflow_ID AND wf.IsBetaFunctionality='N'))")
+					.append(" AND (m.AD_Form_ID IS NULL OR EXISTS (SELECT * FROM AD_Form f WHERE m.AD_Form_ID=f.AD_Form_ID AND f.IsBetaFunctionality='N'))")
+					.append(" AND (m.AD_Browse_ID IS NULL OR EXISTS (SELECT * FROM AD_Browse b WHERE m.AD_Browse_ID=b.AD_Browse_ID AND b.IsBetaFunctionality='N'))");
+			}
+			//	In R/O Menu - Show only defined Forms
+			if (!m_editable)
+			{
+				boolean hasWhere = sqlNode.indexOf(" WHERE ") != -1;
+				sqlNode.append(hasWhere ? " AND " : " WHERE ");
+				sqlNode.append("(m.AD_Form_ID IS NULL OR EXISTS (SELECT * FROM AD_Form f WHERE m.AD_Form_ID=f.AD_Form_ID AND ");
+				if (m_clientTree)
+					sqlNode.append("f.Classname");
+				else
+					sqlNode.append("f.JSPURL");
+				sqlNode.append(" IS NOT NULL))");
+			}*/
+		}
+		
+		//	End Dixon Martinez
+		
 		else
 		{
 			if (columnNameX == null)
@@ -623,6 +691,7 @@ public class MTree extends X_AD_Tree {
 			sqlNode.append("SELECT t.").append(columnNameX)
 				.append("_ID,t.Name,t.Description,t.IsSummary,").append(color)
 				.append(" FROM ").append(fromClause);
+			
 			if (!m_editable)
 				sqlNode.append(" WHERE t.IsActive='Y'");
 		}
@@ -727,6 +796,37 @@ public class MTree extends X_AD_Tree {
 							actionColor, onBar, null);	//	menu has no color
 					}
 				}
+				//	Dixon Martinez 2015-01-09 
+				//	Add support for custom translate trees
+				else if (getTreeType().equals(TREETYPE_CustomTree) 
+						&& !isSummary
+							&& !getSourceTableName(true).equals("SPS_SyncMenu") )
+				{
+					int SPS_Window_ID = m_nodeRowSet.getInt(index++);
+					int AD_Process_ID = m_nodeRowSet.getInt(index++);
+					int AD_Form_ID = m_nodeRowSet.getInt(index++);
+					
+					//
+					MRole role = MRole.getDefault(getCtx(), false);
+					Boolean access = null;
+					if (X_AD_Menu.ACTION_Window.equals(actionColor))
+						access = role.getWindowAccess(SPS_Window_ID);
+					else if (X_AD_Menu.ACTION_Process.equals(actionColor) 
+						|| X_AD_Menu.ACTION_Report.equals(actionColor))
+						access = role.getProcessAccess(AD_Process_ID);
+					else if (X_AD_Menu.ACTION_Form.equals(actionColor))
+						access = role.getFormAccess(AD_Form_ID);
+					//
+					if (access != null		//	rw or ro for Role 
+						|| m_editable)		//	Menu Window can see all
+					{
+						retValue = new MTreeNode (node_ID, seqNo,
+							name, description, parent_ID, isSummary,
+							actionColor, onBar, null);	//	menu has no color
+					}
+				}
+				//	End Dixon Martinez
+				
 				else	//	always add
 				{
 					Color color = null;	//	action
@@ -1059,12 +1159,23 @@ public class MTree extends X_AD_Tree {
 	 */
 	public String getActionColorName()
 	{
-		String tableName = getSourceTableName(getTreeType());
+		//	Dixon Martinez 2015-01-09 
+		//	Add support for custom translate trees
+		//String tableName = getSourceTableName(getTreeType());
+		int AD_Table_ID = getAD_Table_ID();
+		String tableName = MTable.getTableName (getCtx(), AD_Table_ID);
+		if("SPS_SyncMenu".equals(tableName))
+			return "NULL";
+		else if("SPS_Menu".equals(tableName))
+			return "t.Action";
+		
+		//	Dixon Martinez
 		if ("AD_Menu".equals(tableName))
 			return "t.Action";
 		if ("M_Product".equals(tableName) || "C_BPartner".equals(tableName) 
 			|| "AD_Org".equals(tableName) || "C_Campaign".equals(tableName))
 			return "x.AD_PrintColor_ID";
+		
 		return "NULL";
 	}	//	getSourceTableName
 	
