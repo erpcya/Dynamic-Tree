@@ -643,20 +643,18 @@ public class MTree extends X_AD_Tree {
 					.append(" INNER JOIN " + columnNameX + "_Trl m ON (t. " + columnNameX + "_ID = m." + columnNameX + "_ID)")
 				;
 			}
-				/*
-				sqlNode.append("SELECT sm.SPS_SyncMenu_ID, sm.Name,sm.Description,sm.IsSummary, ''Action FROM SPS_SyncMenu sm");
-			else
-				sqlNode.append("SELECT sm.SPS_SyncMenu_ID, smt.Name,smt.Description,sm.IsSummary, ''Action FROM SPS_SyncMenu sm"
-						+ " INNER JOIN SPS_SyncMenu_Trl smt ON (sm.SPS_SyncMenu_ID = smt.SPS_SyncMenu_ID)");
+				
 			
 			if (!base)
-				sqlNode.append(" WHERE sm.SPS_SyncMenu_ID=smt.SPS_SyncMenu_ID AND smt.AD_Language='")
+				sqlNode.append(" WHERE t." + columnNameX + "_ID = m."+ columnNameX + "_ID AND m.AD_Language='")
 					.append(Env.getAD_Language(p_ctx)).append("'");
+			
 			if (!m_editable)
 			{
 				boolean hasWhere = sqlNode.indexOf(" WHERE ") != -1;
-				sqlNode.append(hasWhere ? " AND " : " WHERE ").append("m.IsActive='Y' ");
+				sqlNode.append(hasWhere ? " AND " : " WHERE ").append("t.IsActive='Y' ");
 			}
+			/*
 			//	Do not show Beta
 			if (!MClient.get(getCtx()).isUseBetaFunctions())
 			{
@@ -1166,7 +1164,8 @@ public class MTree extends X_AD_Tree {
 		String tableName = MTable.getTableName (getCtx(), AD_Table_ID);
 		if("SPS_SyncMenu".equals(tableName))
 			return "NULL";
-		else if("SPS_Menu".equals(tableName))
+		
+		if("SPS_Menu".equals(tableName))
 			return "t.Action";
 		
 		//	Dixon Martinez
