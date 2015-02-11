@@ -1,3 +1,4 @@
+package org.adempiere.webui.panel;
 /******************************************************************************
  * Product: Posterita Ajax UI 												  *
  * Copyright (C) 2007 Posterita Ltd.  All Rights Reserved.                    *
@@ -15,7 +16,6 @@
  * or via info@posterita.org or http://www.posterita.org/                     *
  *****************************************************************************/
 
-package org.adempiere.webui.panel;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyVetoException;
@@ -25,8 +25,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Map.Entry;
+import java.util.Properties;
 import java.util.logging.Level;
 
 import org.adempiere.webui.LayoutUtils;
@@ -125,7 +125,7 @@ DataStatusListener, IADTabpanel, VetoableChangeListener
 
     private boolean			  uiCreated = false;
 
-    private GridPanel		  listPanel;
+    private GridPanel		  listPanel = null;
 
     private Map<String, List<org.zkoss.zul.Row>> fieldGroupContents = new HashMap<String, List<org.zkoss.zul.Row>>();
 
@@ -149,6 +149,7 @@ DataStatusListener, IADTabpanel, VetoableChangeListener
 	private Group currentGroup;
 
 	private boolean m_vetoActive = false;
+	
 
 	public ADTabpanel()
 	{
@@ -163,7 +164,6 @@ DataStatusListener, IADTabpanel, VetoableChangeListener
     private void initComponents()
     {
     	LayoutUtils.addSclass("adtab-content", this);
-
         grid = new Grid();
         //have problem moving the following out as css class
         grid.setWidth("100%");
@@ -192,24 +192,32 @@ DataStatusListener, IADTabpanel, VetoableChangeListener
         this.windowPanel = winPanel;
         gridTab.addDataStatusListener(this);
         this.dataBinder = new GridTabDataBinder(gridTab);
-
+        
         this.getChildren().clear();
-
         int AD_Tree_ID = 0;
-        //	Yamel Senih Add Dynamic Tree
-		if (gridTab.isTreeTab())
+        String treeName = "AD_Tree_ID";
+        //  Raul Muñoz Get Add Dynamic Tree
+        AD_Tree_ID = Env.getContextAsInt (Env.getCtx(), windowNo, treeName, true);
+		//	End Raul Muñoz
+  	    //	Yamel Senih Add Dynamic Tree
+		if (gridTab.isTreeTab() && AD_Tree_ID != 0)
 			//AD_Tree_ID = MTree.getDefaultAD_Tree_ID (
 				//Env.getAD_Client_ID(Env.getCtx()), gridTab.getKeyColumnName());
 			AD_Tree_ID = MTree.getDefaultAD_Tree_ID (
 					Env.getAD_Client_ID(Env.getCtx()), gridTab.getAD_Table_ID());
+        	
 		//	End Yamel Senih
 		if (gridTab.isTreeTab() && AD_Tree_ID != 0)
-		{			
+		{
 			Borderlayout layout = new Borderlayout();
 			layout.setParent(this);
 			layout.setStyle("width: 100%; height: 100%; position: absolute;");
-			
+
 			treePanel = new ADTreePanel();
+			
+			if (gridTab.getTabNo() == 0){	//	initialize other tabs later
+				treePanel.initTree(AD_Tree_ID, windowNo);
+			}
 			West west = new West();
 			west.appendChild(treePanel);
 			west.setWidth("300px");
@@ -217,7 +225,7 @@ DataStatusListener, IADTabpanel, VetoableChangeListener
 			west.setSplittable(true);
 			west.setAutoscroll(true);
 			layout.appendChild(west);
-
+			
 			Center center = new Center();
 			center.setFlex(true);
 			center.appendChild(grid);
@@ -520,22 +528,26 @@ DataStatusListener, IADTabpanel, VetoableChangeListener
         }
 
         //create tree
-        //	Yamel Senih Add Dynamic Tree
+        //	Raul Muñoz Add Dynamic Tree
         if (gridTab.isTreeTab() && treePanel != null) {
-			//int AD_Tree_ID = MTree.getDefaultAD_Tree_ID (
-				//Env.getAD_Client_ID(Env.getCtx()), gridTab.getKeyColumnName());
-        	int AD_Tree_ID = MTree.getDefaultAD_Tree_ID (
-					Env.getAD_Client_ID(Env.getCtx()), gridTab.getAD_Table_ID());
-        	//	Where Extended
+        	String treeName = "AD_Tree_ID";
+        	// Get whereClause for AD_Tree_ID
         	String whereClause = gridTab.getWhereExtended();
-			whereClause = Env.parseContext(Env.getCtx(), windowNo, whereClause, false, false);
-			//	Where
+        	
+        	whereClause = Env.parseContext(Env.getCtx(), windowNo, whereClause, false, false);
+        	int AD_Tree_ID = Env.getContextAsInt (Env.getCtx(), windowNo, treeName, true);
+			//int AD_Tree_ID = MTree.getDefaultAD_Tree_ID (
+			//Env.getAD_Client_ID(Env.getCtx()), gridTab.getKeyColumnName());
+			
         	treePanel.initTree(AD_Tree_ID, windowNo, whereClause);
+        	//  End Raul Muñoz.
         }
         //	End Yamel Senih
         
         if (!gridTab.isSingleRow() && !isGridView())
         	switchRowPresentation();
+        refresh();
+     
     }
 
 	private Component createSpacer() {
@@ -650,8 +662,8 @@ DataStatusListener, IADTabpanel, VetoableChangeListener
         			row.setVisible(visible);
         	}
         }
-
         logger.config(gridTab.toString() + " - fini - " + (col<=0 ? "complete" : "seletive"));
+       
     }   //  dynamicDisplay
 
     /**
@@ -763,12 +775,13 @@ DataStatusListener, IADTabpanel, VetoableChangeListener
         		setFocusToField();
         	}
         }
-
+        
         //activate embedded panel
         for(EmbeddedPanel ep : includedPanel)
         {
         	activateChild(activate, ep);
         }
+      
     }
 
 	private void activateChild(boolean activate, EmbeddedPanel panel) {
@@ -922,14 +935,38 @@ DataStatusListener, IADTabpanel, VetoableChangeListener
         	for (EmbeddedPanel panel : includedPanel)
         		panel.tabPanel.query(false, 0, 0);
         }
+        
+        //  Raul Muñoz Refresh Tree
+        if (gridTab.isTreeTab() && treePanel != null) {
+        	String treeName = "AD_Tree_ID";
+        	String whereClause = gridTab.getWhereExtended();
+        	whereClause = Env.parseContext(Env.getCtx(), windowNo, whereClause, false, false);
+        	int AD_Tree_ID = Env.getContextAsInt (Env.getCtx(), windowNo, treeName, true);
+			
+        	treePanel = new ADTreePanel();
+        	treePanel.initTree(AD_Tree_ID, windowNo, whereClause);
 
+        	Borderlayout layout = new Borderlayout();
+			layout.setParent(this);
+			layout.setStyle("width: 100%; height: 100%; position: absolute;");
+
+			West west = new West();
+			west.appendChild(treePanel);
+			west.setWidth("300px");
+			west.setCollapsible(true);
+			west.setSplittable(true);
+			west.setAutoscroll(true);
+			layout.appendChild(west);
+						
+        }
+        activate(true);
+        // End Raul Muñoz
     }
 
     private void deleteNode(int recordId) {
 		if (recordId <= 0) return;
 
 		SimpleTreeModel model = (SimpleTreeModel) treePanel.getTree().getModel();
-
 		if (treePanel.getTree().getSelectedItem() != null) {
 			SimpleTreeNode treeNode = (SimpleTreeNode) treePanel.getTree().getSelectedItem().getValue();
 			MTreeNode data = (MTreeNode) treeNode.getData();
@@ -938,6 +975,12 @@ DataStatusListener, IADTabpanel, VetoableChangeListener
 				return;
 			}
 		}
+		if (gridTab.isLoadComplete())
+		{
+			gridTab.getTableModel().removeDataStatusListener(this);
+			gridTab.getTableModel().removeVetoableChangeListener(this);
+		}
+		
 
 		SimpleTreeNode treeNode = model.find(null, recordId);
 		if (treeNode != null) {
