@@ -150,6 +150,7 @@ DataStatusListener, IADTabpanel, VetoableChangeListener
 
 	private boolean m_vetoActive = false;
 	
+	private int old_AD_Table_ID = 0;
 
 	public ADTabpanel()
 	{
@@ -195,17 +196,17 @@ DataStatusListener, IADTabpanel, VetoableChangeListener
         
         this.getChildren().clear();
         int AD_Tree_ID = 0;
-        String treeName = "AD_Tree_ID";
         //  Raul Muñoz Get Add Dynamic Tree
-        AD_Tree_ID = Env.getContextAsInt (Env.getCtx(), windowNo, treeName, true);
+        AD_Tree_ID = Env.getContextAsInt (Env.getCtx(), windowNo, "AD_Tree_ID", true);
 		//	End Raul Muñoz
   	    //	Yamel Senih Add Dynamic Tree
-		if (gridTab.isTreeTab() && AD_Tree_ID != 0)
+		if (gridTab.isTreeTab() && AD_Tree_ID == 0)
 			//AD_Tree_ID = MTree.getDefaultAD_Tree_ID (
 				//Env.getAD_Client_ID(Env.getCtx()), gridTab.getKeyColumnName());
 			AD_Tree_ID = MTree.getDefaultAD_Tree_ID (
 					Env.getAD_Client_ID(Env.getCtx()), gridTab.getAD_Table_ID());
         	
+        old_AD_Table_ID = AD_Tree_ID;
 		//	End Yamel Senih
 		if (gridTab.isTreeTab() && AD_Tree_ID != 0)
 		{
@@ -530,15 +531,21 @@ DataStatusListener, IADTabpanel, VetoableChangeListener
         //create tree
         //	Raul Muñoz Add Dynamic Tree
         if (gridTab.isTreeTab() && treePanel != null) {
-        	String treeName = "AD_Tree_ID";
+        	
         	// Get whereClause for AD_Tree_ID
         	String whereClause = gridTab.getWhereExtended();
-        	
+        	int AD_Tree_ID = 0;
         	whereClause = Env.parseContext(Env.getCtx(), windowNo, whereClause, false, false);
-        	int AD_Tree_ID = Env.getContextAsInt (Env.getCtx(), windowNo, treeName, true);
+        	AD_Tree_ID = Env.getContextAsInt (Env.getCtx(), windowNo, "AD_Tree_ID", true);
+        	
+        	if (AD_Tree_ID == 0)
+				AD_Tree_ID = MTree.getDefaultAD_Tree_ID (
+					Env.getAD_Client_ID(Env.getCtx()), gridTab.getAD_Table_ID());
+					
 			//int AD_Tree_ID = MTree.getDefaultAD_Tree_ID (
 			//Env.getAD_Client_ID(Env.getCtx()), gridTab.getKeyColumnName());
 			
+       		old_AD_Table_ID = AD_Tree_ID;
         	treePanel.initTree(AD_Tree_ID, windowNo, whereClause);
         	//  End Raul Muñoz.
         }
@@ -937,12 +944,12 @@ DataStatusListener, IADTabpanel, VetoableChangeListener
         }
         
         //  Raul Muñoz Refresh Tree
-        if (gridTab.isTreeTab() && treePanel != null) {
-        	String treeName = "AD_Tree_ID";
+        if (gridTab.isTreeTab() && treePanel != null ) {
         	String whereClause = gridTab.getWhereExtended();
         	whereClause = Env.parseContext(Env.getCtx(), windowNo, whereClause, false, false);
-        	int AD_Tree_ID = Env.getContextAsInt (Env.getCtx(), windowNo, treeName, true);
-			
+        	int AD_Tree_ID = Env.getContextAsInt (Env.getCtx(), windowNo, "AD_Tree_ID", true);
+
+			if(old_AD_Table_ID != AD_Tree_ID){
         	treePanel = new ADTreePanel();
         	treePanel.initTree(AD_Tree_ID, windowNo, whereClause);
 
@@ -957,7 +964,10 @@ DataStatusListener, IADTabpanel, VetoableChangeListener
 			west.setSplittable(true);
 			west.setAutoscroll(true);
 			layout.appendChild(west);
-						
+
+			treePanel.getTree().addEventListener(Events.ON_SELECT, this);
+			old_AD_Table_ID = AD_Tree_ID;
+			}		
         }
         activate(true);
         // End Raul Muñoz
