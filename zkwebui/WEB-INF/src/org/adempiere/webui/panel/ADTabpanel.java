@@ -150,7 +150,7 @@ DataStatusListener, IADTabpanel, VetoableChangeListener
 
 	private boolean m_vetoActive = false;
 	
-	private int old_AD_Table_ID = 0;
+	private int m_OldTree_ID = 0;
 
 	public ADTabpanel()
 	{
@@ -195,20 +195,19 @@ DataStatusListener, IADTabpanel, VetoableChangeListener
         this.dataBinder = new GridTabDataBinder(gridTab);
         
         this.getChildren().clear();
-        int AD_Tree_ID = 0;
-        //  Raul Muñoz Get Add Dynamic Tree
-        AD_Tree_ID = Env.getContextAsInt (Env.getCtx(), windowNo, "AD_Tree_ID", true);
-		//	End Raul Muñoz
-  	    //	Yamel Senih Add Dynamic Tree
-		if (gridTab.isTreeTab() && AD_Tree_ID == 0)
+        
+        //	Raul Muñoz Get Add Dynamic Tree
+        int m_AD_Tree_ID = Env.getContextAsInt(Env.getCtx(), windowNo, "AD_Tree_ID", true);
+        m_OldTree_ID = m_AD_Tree_ID;
+		//	Yamel Senih 
+		if (gridTab.isTreeTab() && m_AD_Tree_ID == 0)
 			//AD_Tree_ID = MTree.getDefaultAD_Tree_ID (
 				//Env.getAD_Client_ID(Env.getCtx()), gridTab.getKeyColumnName());
-			AD_Tree_ID = MTree.getDefaultAD_Tree_ID (
+			m_AD_Tree_ID = MTree.getDefaultAD_Tree_ID (
 					Env.getAD_Client_ID(Env.getCtx()), gridTab.getAD_Table_ID());
-        	
-        old_AD_Table_ID = AD_Tree_ID;
+		
 		//	End Yamel Senih
-		if (gridTab.isTreeTab() && AD_Tree_ID != 0)
+		if (gridTab.isTreeTab() && m_AD_Tree_ID != 0)
 		{
 			Borderlayout layout = new Borderlayout();
 			layout.setParent(this);
@@ -216,9 +215,11 @@ DataStatusListener, IADTabpanel, VetoableChangeListener
 
 			treePanel = new ADTreePanel();
 			
-			if (gridTab.getTabNo() == 0){	//	initialize other tabs later
-				treePanel.initTree(AD_Tree_ID, windowNo);
-			}
+		//	Raul Muñoz 16/03/2015 Fixed error Tree Menu.
+		//	if (gridTab.getTabNo() == 0){	//	initialize other tabs later
+		//		treePanel.initTree(m_AD_Tree_ID, windowNo);
+		//	}
+			
 			West west = new West();
 			west.appendChild(treePanel);
 			west.setWidth("300px");
@@ -529,25 +530,24 @@ DataStatusListener, IADTabpanel, VetoableChangeListener
         }
 
         //create tree
-        //	Raul Muñoz Add Dynamic Tree
+        //	Yamel Senih
         if (gridTab.isTreeTab() && treePanel != null) {
-        	
-        	// Get whereClause for AD_Tree_ID
+        	//int AD_Tree_ID = MTree.getDefaultAD_Tree_ID (
+				//Env.getAD_Client_ID(Env.getCtx()), gridTab.getKeyColumnName());
+			//treePanel.initTree(AD_Tree_ID, windowNo);
+        	int m_AD_Tree_ID = Env.getContextAsInt (Env.getCtx(), windowNo, "AD_Tree_ID", true);
+        	//	Valid Tree Value from context
+        	if(m_AD_Tree_ID == 0) {
+        		m_AD_Tree_ID = MTree.getDefaultAD_Tree_ID (
+    					Env.getAD_Client_ID(Env.getCtx()), gridTab.getAD_Table_ID());
+        	}
+        	//	Where Extended
         	String whereClause = gridTab.getWhereExtended();
-        	int AD_Tree_ID = 0;
-        	whereClause = Env.parseContext(Env.getCtx(), windowNo, whereClause, false, false);
-        	AD_Tree_ID = Env.getContextAsInt (Env.getCtx(), windowNo, "AD_Tree_ID", true);
-        	
-        	if (AD_Tree_ID == 0)
-				AD_Tree_ID = MTree.getDefaultAD_Tree_ID (
-					Env.getAD_Client_ID(Env.getCtx()), gridTab.getAD_Table_ID());
-					
-			//int AD_Tree_ID = MTree.getDefaultAD_Tree_ID (
-			//Env.getAD_Client_ID(Env.getCtx()), gridTab.getKeyColumnName());
-			
-       		old_AD_Table_ID = AD_Tree_ID;
-        	treePanel.initTree(AD_Tree_ID, windowNo, whereClause);
-        	//  End Raul Muñoz.
+			whereClause = Env.parseContext(Env.getCtx(), windowNo, whereClause, false, false);
+			//	Save Old Tree
+			m_OldTree_ID = m_AD_Tree_ID;
+			//	Where
+        	treePanel.initTree(m_AD_Tree_ID, windowNo, null);
         }
         //	End Yamel Senih
         
@@ -942,35 +942,54 @@ DataStatusListener, IADTabpanel, VetoableChangeListener
         	for (EmbeddedPanel panel : includedPanel)
         		panel.tabPanel.query(false, 0, 0);
         }
-        
-        //  Raul Muñoz Refresh Tree
-        if (gridTab.isTreeTab() && treePanel != null ) {
-        	String whereClause = gridTab.getWhereExtended();
-        	whereClause = Env.parseContext(Env.getCtx(), windowNo, whereClause, false, false);
-        	int AD_Tree_ID = Env.getContextAsInt (Env.getCtx(), windowNo, "AD_Tree_ID", true);
+        	//  Raul Muñoz Refresh Tree
+    		//	Tree to be initiated on second/.. tab
+            if (gridTab.isTreeTab() && treePanel != null && gridTab.getTabNo() != 0) {
+            	String whereClause = gridTab.getWhereExtended();
+            	whereClause = Env.parseContext(Env.getCtx(), windowNo, whereClause, false, false);
+            	String keyColumnName = gridTab.getKeyColumnName();
+    			String treeName = "AD_Tree_ID";
+    			//	Raul Muñoz 20/02/2015, 14:30
+    			if (keyColumnName.startsWith("CM"))
+    			{
+    				if (keyColumnName.equals("CM_Container_ID"))
+    					treeName = "AD_TreeCMC_ID";
+    				else if (keyColumnName.equals("CM_CStage_ID"))
+    					treeName = "AD_TreeCMS_ID";
+    				else if (keyColumnName.equals("CM_Template_ID"))
+    					treeName = "AD_TreeCMT_ID";
+    				else if (keyColumnName.equals("CM_Media_ID"))
+    					treeName = "AD_TreeCMM_ID";
+    			}
+    			
+    			int m_AD_Tree_ID = Env.getContextAsInt (Env.getCtx(), windowNo, treeName, true);
+    			
+    			if (m_AD_Tree_ID == 0)
+    				m_AD_Tree_ID = MTree.getDefaultAD_Tree_ID (
+    						Env.getAD_Client_ID(Env.getCtx()), gridTab.getAD_Table_ID());
 
-			if(old_AD_Table_ID != AD_Tree_ID){
-        	treePanel = new ADTreePanel();
-        	treePanel.initTree(AD_Tree_ID, windowNo, whereClause);
+    			if(m_OldTree_ID != m_AD_Tree_ID){
+            		treePanel = new ADTreePanel();
+                	treePanel.initTree(m_AD_Tree_ID, windowNo, whereClause);
 
-        	Borderlayout layout = new Borderlayout();
-			layout.setParent(this);
-			layout.setStyle("width: 100%; height: 100%; position: absolute;");
+                	Borderlayout layout = new Borderlayout();
+        			layout.setParent(this);
+        			layout.setStyle("width: 100%; height: 100%; position: absolute;");
 
-			West west = new West();
-			west.appendChild(treePanel);
-			west.setWidth("300px");
-			west.setCollapsible(true);
-			west.setSplittable(true);
-			west.setAutoscroll(true);
-			layout.appendChild(west);
-
-			treePanel.getTree().addEventListener(Events.ON_SELECT, this);
-			old_AD_Table_ID = AD_Tree_ID;
-			}		
-        }
-        activate(true);
-        // End Raul Muñoz
+        			West west = new West();
+        			west.appendChild(treePanel);
+        			west.setWidth("300px");
+        			west.setCollapsible(true);
+        			west.setSplittable(true);
+        			west.setAutoscroll(true);
+        			layout.appendChild(west);
+        			//	Add Listener
+        			treePanel.getTree().addEventListener(Events.ON_SELECT, this);
+    				m_OldTree_ID = m_AD_Tree_ID;
+            	}			
+            }
+            activate(true);
+            // End Raul Muñoz
     }
 
     private void deleteNode(int recordId) {
