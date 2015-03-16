@@ -215,11 +215,6 @@ DataStatusListener, IADTabpanel, VetoableChangeListener
 
 			treePanel = new ADTreePanel();
 			
-		//	Raul Muñoz 16/03/2015 Fixed error Tree Menu.
-		//	if (gridTab.getTabNo() == 0){	//	initialize other tabs later
-		//		treePanel.initTree(m_AD_Tree_ID, windowNo);
-		//	}
-			
 			West west = new West();
 			west.appendChild(treePanel);
 			west.setWidth("300px");
