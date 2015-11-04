@@ -14,7 +14,7 @@
   <property name="zkjar" value="${dist}/zkclass"/>
   
   <property name="build.dir" value="build"/>
-  <property name="dist.dir" value="${project.trunk}/packages/${project-name}/lib"/>
+  <property name="dist.dir" value="${project.trunk}/packages/${package-name}/lib"/>
   <property name="jar.name" value="${project-name}"/>
   
 	 <!-- set path to include the necessary jar files for javac -->
@@ -29,7 +29,7 @@
   <path id="compilezk.classpath">
     <pathelement location="${adempiere.trunk}/zkwebui/WEB-INF/classes"/>
   	
-  	<fileset dir="${basedir}/packages/Dynamic-Tree/lib">
+  	<fileset dir="${basedir}/packages/${package-name}/lib">
   	  	      <include name="*.jar"/>
   	</fileset>
     <fileset dir="${adempiere.trunk}/lib">
@@ -49,7 +49,7 @@
     <javac srcdir="${zksrc}" destdir="${zkclasses}" includeantruntime="true">
       <classpath refid="compilezk.classpath"/>
     </javac>
-    <jar jarfile="${basedir}/zkpackages/Dynamic-Tree/lib/Dynamic-Tree.jar" basedir="${zkjar}"/>
+    <jar jarfile="${basedir}/zkpackages/${package-name}/lib/Dynamic-Tree.jar" basedir="${zkjar}"/>
   </target>
 
 	
