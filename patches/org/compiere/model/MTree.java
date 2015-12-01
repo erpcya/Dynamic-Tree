@@ -48,25 +48,25 @@ import org.compiere.util.Env;
  *  		<li> Add Support to Dynamic Tree 2013/07/02 16:42:57
  */
 public class MTree extends X_AD_Tree {
+	
+	/**
+	 * Set Contructor with ResultSet
+	 * *** Constructor ***
+	 * @author <a href="mailto:carlosaparadam@gmail.com">Carlos Parada</a> 21/10/2014, 00:48:29
+	 * @param ctx
+	 * @param rs
+	 * @param trxName
+	 */
+	public MTree (Properties ctx, ResultSet rs, String trxName)
+    {
+      super (ctx, rs, trxName);
+    }
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = -6412057411585787707L;
 
-
-	/**
-	 *  Default Constructor.
-	 * 	Need to call loadNodes explicitly
-	 * 	@param ctx context for security
-	 *  @param AD_Tree_ID   The tree to build
-	 *  @param trxName transaction
-	 */
-	//	Yamel Senih, Old method
-	/*public MTree1 (Properties ctx, int AD_Tree_ID, String trxName)
-	{
-		super (ctx, AD_Tree_ID, trxName);
-	}   //  MTree*/
-	//	End Yamel Senih
+	
 	/**
 	 *  Construct & Load Tree
 	 *  @param AD_Tree_ID   The tree to build
@@ -79,7 +79,23 @@ public class MTree extends X_AD_Tree {
 	public MTree (Properties ctx, int AD_Tree_ID, 
 		boolean editable, boolean clientTree, String trxName)
 	{
-		this (ctx, AD_Tree_ID, editable, clientTree, false, trxName);
+		this (ctx, AD_Tree_ID, editable, clientTree, false, null, trxName);
+	}   //  MTree
+	
+	/**
+	 *  Construct & Load Tree
+	 *  @param AD_Tree_ID   The tree to build
+	 *  @param editable     True, if tree can be modified
+	 *  - includes inactive and empty summary nodes
+	 * 	@param ctx context for security
+	 *	@param clientTree the tree is displayed on the java client (not on web)
+	 *	@param whereClause
+	 *  @param trxName transaction
+	 */
+	public MTree (Properties ctx, int AD_Tree_ID, 
+			boolean editable, boolean clientTree, String whereClause, String trxName)
+	{
+		this (ctx, AD_Tree_ID, editable, clientTree, false, whereClause, trxName);
 	}   //  MTree
 
 	public MTree (Properties ctx, int AD_Tree_ID, 
@@ -98,8 +114,86 @@ public class MTree extends X_AD_Tree {
 				+ ", Editable=" + editable
 				+ ", OnClient=" + clientTree);
 		//
-		loadNodes(AD_User_ID);
+		loadNodes(AD_User_ID, null);
 	}   //  MTree
+	
+	public MTree (Properties ctx, int AD_Tree_ID, 
+			boolean editable, boolean clientTree, boolean allNodes, String whereClause, String trxName)
+	{
+		this (ctx, AD_Tree_ID, trxName);
+		m_editable = editable;
+		int AD_User_ID;
+		if (allNodes)
+			AD_User_ID = -1;
+		else
+			AD_User_ID = Env.getContextAsInt(ctx, "AD_User_ID");
+		m_clientTree = clientTree;
+		log.info("AD_Tree_ID=" + AD_Tree_ID
+				+ ", AD_User_ID=" + AD_User_ID 
+				+ ", Editable=" + editable
+				+ ", OnClient=" + clientTree);
+		//	Yamel Senih 2014-03-18, 20:34:45
+		loadNodes(AD_User_ID, whereClause);
+		//	End Yamel Senih
+	}   //  MTree
+
+
+	//	Dixon Martinez
+	//	20/08/2014
+	//	Add support to create tree of process create client
+	/**
+	 * 	Parent Constructor
+	 *	@param client client
+	 *	@param name name
+	 *	@param treeType
+	 */
+	public MTree (MClient client, String name, String treeType)
+	{
+		this (client.getCtx(), 0, client.get_TrxName());
+		setClientOrg (client);
+		setName (name);
+		setTreeType (treeType);
+		setTable_ID(treeType);
+	}	//	MTree_Base
+
+	/**
+	 * Set Table ID of type tree
+	 * @author <a href="mailto:dixon.22martinez@gmail.com">Dixon Martinez</a> 20/08/2014, 22:40:26
+	 * @param treeType
+	 * @return void
+	 */
+	private void setTable_ID(String treeType) {
+		int table_ID = 0;
+		if(TREETYPE_Activity.equals(treeType))
+			table_ID = X_C_Activity.Table_ID;
+		else if (TREETYPE_BPartner.equals(treeType))
+			table_ID = X_C_BPartner.Table_ID;
+		else if (TREETYPE_Campaign.equals(treeType))
+			table_ID = X_C_Campaign.Table_ID;
+		else if (TREETYPE_CMContainer.equals(treeType))
+			table_ID = X_CM_Container.Table_ID;
+		else if (TREETYPE_CMContainerStage.equals(treeType))
+			table_ID = X_CM_CStage.Table_ID;
+		else if (TREETYPE_CMMedia.equals(treeType))
+			table_ID = X_CM_Media.Table_ID;
+		else if (TREETYPE_CMTemplate.equals(treeType))
+			table_ID = X_CM_Template.Table_ID;
+		else if (TREETYPE_ElementValue.equals(treeType))
+			table_ID = X_C_ElementValue.Table_ID;
+		else if (TREETYPE_Organization.equals(treeType))
+			table_ID = X_AD_Org.Table_ID;
+		else if (TREETYPE_Product.equals(treeType))
+			table_ID = X_M_Product.Table_ID;
+		else if (TREETYPE_Project.equals(treeType))
+			table_ID = X_C_Project.Table_ID;
+		else if (TREETYPE_SalesRegion.equals(treeType))
+			table_ID = X_C_SalesRegion.Table_ID;
+
+		setAD_Table_ID(table_ID);
+		
+	}
+
+	//	End Dixon Martinez
 
 	/** Is Tree editable    	*/
 	private boolean     		m_editable = false;
@@ -262,20 +356,45 @@ public class MTree extends X_AD_Tree {
 	/*************************************************************************
 	 *  Load Nodes and Bar
 	 * 	@param AD_User_ID user for tree bar
+	 * 	@param WhereClass
 	 */
-	private void loadNodes (int AD_User_ID)
+	private void loadNodes (int AD_User_ID, String whereClause)
 	{
+		//	Yamel Senih 2014-03-18, 20:19:06
+		//	Add Where Clause
+		//	Old Code
+		//StringBuffer sql = new StringBuffer("SELECT "
+			//+ "tn.Node_ID,tn.Parent_ID,tn.SeqNo,tb.IsActive "
+			//+ "FROM ").append(getNodeTableName()).append(" tn"
+			//+ " LEFT OUTER JOIN AD_TreeBar tb ON (tn.AD_Tree_ID=tb.AD_Tree_ID"
+			//+ " AND tn.Node_ID=tb.Node_ID "
+			//+ (AD_User_ID != -1 ? " AND tb.AD_User_ID=? ": "") 	//	#1 (conditional)
+			//+ ") "
+			//+ "WHERE tn.AD_Tree_ID=?");								//	#2
+		//if (!m_editable)
+			//sql.append(" AND tn.IsActive='Y'");
+		//sql.append(" ORDER BY COALESCE(tn.Parent_ID, -1), tn.SeqNo");
+		String fromClause = getSourceTableName(true);
 		//  SQL for TreeNodes
 		StringBuffer sql = new StringBuffer("SELECT "
 			+ "tn.Node_ID,tn.Parent_ID,tn.SeqNo,tb.IsActive "
-			+ "FROM ").append(getNodeTableName()).append(" tn"
-			+ " LEFT OUTER JOIN AD_TreeBar tb ON (tn.AD_Tree_ID=tb.AD_Tree_ID"
+			+ "FROM ").append(getNodeTableName()).append(" tn ")
+			.append("INNER JOIN ")
+				.append(fromClause).append(" ON(")
+					.append(fromClause).append(".").append(fromClause + "_ID").append(" = tn.Node_ID) ")
+			//
+			.append(" LEFT OUTER JOIN AD_TreeBar tb ON (tn.AD_Tree_ID=tb.AD_Tree_ID"
 			+ " AND tn.Node_ID=tb.Node_ID "
 			+ (AD_User_ID != -1 ? " AND tb.AD_User_ID=? ": "") 	//	#1 (conditional)
 			+ ") "
 			+ "WHERE tn.AD_Tree_ID=?");								//	#2
 		if (!m_editable)
 			sql.append(" AND tn.IsActive='Y'");
+		//	Add GridTab Where Class
+		if(whereClause != null
+				&& whereClause.length() > 0)
+			sql.append(" AND ").append(whereClause);
+		//	End Yamel Senih
 		sql.append(" ORDER BY COALESCE(tn.Parent_ID, -1), tn.SeqNo");
 		log.finest(sql.toString());
 
@@ -497,6 +616,72 @@ public class MTree extends X_AD_Tree {
 				sqlNode.append(" IS NOT NULL))");
 			}
 		}
+		//	Dixon Martinez 2015-01-09 
+		//	Add support for custom translate trees
+		else if (getTreeType().equals(TREETYPE_CustomTree))
+		{
+			boolean base = Env.isBaseLanguage(p_ctx, columnNameX);
+			sourceTable = "m";
+			String recordClause = "";
+			if("SPS_SyncMenu".equals(columnNameX))
+				recordClause = "";
+			else if("SPS_Menu".equals(columnNameX))
+				recordClause = "t.SPS_Window_ID, t.AD_Process_ID, t.AD_Form_ID";
+				
+			if (base){
+				sqlNode.append("SELECT t." + columnNameX + "_ID, ")
+					.append("t.Name, t.Description, t.IsSummary, " + color + " AS Action ")
+					.append(recordClause.length() > 0 ? ", " + recordClause : "")
+					.append(" FROM " + fromClause )
+					;
+			}else {
+				sqlNode.append("SELECT t." + columnNameX + "_ID, ")
+					.append("COALESCE(m.Name, t.Name) AS Name, COALESCE(m.Description, t.Description) AS Description, t.IsSummary,  ")
+					.append( color + " AS Action ")
+					.append(recordClause.length() > 0 ? ", " + recordClause : "")
+					.append(" FROM " + fromClause )
+					.append(" INNER JOIN " + columnNameX + "_Trl m ON (t. " + columnNameX + "_ID = m." + columnNameX + "_ID)")
+				;
+			}
+				
+			
+			if (!base)
+				sqlNode.append(" WHERE t." + columnNameX + "_ID = m."+ columnNameX + "_ID AND m.AD_Language='")
+					.append(Env.getAD_Language(p_ctx)).append("'");
+			
+			if (!m_editable)
+			{
+				boolean hasWhere = sqlNode.indexOf(" WHERE ") != -1;
+				sqlNode.append(hasWhere ? " AND " : " WHERE ").append("t.IsActive='Y' ");
+			}
+			/*
+			//	Do not show Beta
+			if (!MClient.get(getCtx()).isUseBetaFunctions())
+			{
+				boolean hasWhere = sqlNode.indexOf(" WHERE ") != -1;
+				sqlNode.append(hasWhere ? " AND " : " WHERE ");
+				sqlNode.append("(m.AD_Window_ID IS NULL OR EXISTS (SELECT * FROM AD_Window w WHERE m.AD_Window_ID=w.AD_Window_ID AND w.IsBetaFunctionality='N'))")
+					.append(" AND (m.AD_Process_ID IS NULL OR EXISTS (SELECT * FROM AD_Process p WHERE m.AD_Process_ID=p.AD_Process_ID AND p.IsBetaFunctionality='N'))")
+					.append(" AND (m.AD_Workflow_ID IS NULL OR EXISTS (SELECT * FROM AD_Workflow wf WHERE m.AD_Workflow_ID=wf.AD_Workflow_ID AND wf.IsBetaFunctionality='N'))")
+					.append(" AND (m.AD_Form_ID IS NULL OR EXISTS (SELECT * FROM AD_Form f WHERE m.AD_Form_ID=f.AD_Form_ID AND f.IsBetaFunctionality='N'))")
+					.append(" AND (m.AD_Browse_ID IS NULL OR EXISTS (SELECT * FROM AD_Browse b WHERE m.AD_Browse_ID=b.AD_Browse_ID AND b.IsBetaFunctionality='N'))");
+			}
+			//	In R/O Menu - Show only defined Forms
+			if (!m_editable)
+			{
+				boolean hasWhere = sqlNode.indexOf(" WHERE ") != -1;
+				sqlNode.append(hasWhere ? " AND " : " WHERE ");
+				sqlNode.append("(m.AD_Form_ID IS NULL OR EXISTS (SELECT * FROM AD_Form f WHERE m.AD_Form_ID=f.AD_Form_ID AND ");
+				if (m_clientTree)
+					sqlNode.append("f.Classname");
+				else
+					sqlNode.append("f.JSPURL");
+				sqlNode.append(" IS NOT NULL))");
+			}*/
+		}
+		
+		//	End Dixon Martinez
+		
 		else
 		{
 			if (columnNameX == null)
@@ -504,6 +689,7 @@ public class MTree extends X_AD_Tree {
 			sqlNode.append("SELECT t.").append(columnNameX)
 				.append("_ID,t.Name,t.Description,t.IsSummary,").append(color)
 				.append(" FROM ").append(fromClause);
+			
 			if (!m_editable)
 				sqlNode.append(" WHERE t.IsActive='Y'");
 		}
@@ -608,6 +794,37 @@ public class MTree extends X_AD_Tree {
 							actionColor, onBar, null);	//	menu has no color
 					}
 				}
+				//	Dixon Martinez 2015-01-09 
+				//	Add support for custom translate trees
+				else if (getTreeType().equals(TREETYPE_CustomTree) 
+						&& !isSummary
+							&& !getSourceTableName(true).equals("SPS_SyncMenu") )
+				{
+					int SPS_Window_ID = m_nodeRowSet.getInt(index++);
+					int AD_Process_ID = m_nodeRowSet.getInt(index++);
+					int AD_Form_ID = m_nodeRowSet.getInt(index++);
+					
+					//
+					MRole role = MRole.getDefault(getCtx(), false);
+					Boolean access = null;
+					if (X_AD_Menu.ACTION_Window.equals(actionColor))
+						access = role.getWindowAccess(SPS_Window_ID);
+					else if (X_AD_Menu.ACTION_Process.equals(actionColor) 
+						|| X_AD_Menu.ACTION_Report.equals(actionColor))
+						access = role.getProcessAccess(AD_Process_ID);
+					else if (X_AD_Menu.ACTION_Form.equals(actionColor))
+						access = role.getFormAccess(AD_Form_ID);
+					//
+					if (access != null		//	rw or ro for Role 
+						|| m_editable)		//	Menu Window can see all
+					{
+						retValue = new MTreeNode (node_ID, seqNo,
+							name, description, parent_ID, isSummary,
+							actionColor, onBar, null);	//	menu has no color
+					}
+				}
+				//	End Dixon Martinez
+				
 				else	//	always add
 				{
 					Color color = null;	//	action
@@ -940,12 +1157,24 @@ public class MTree extends X_AD_Tree {
 	 */
 	public String getActionColorName()
 	{
-		String tableName = getSourceTableName(getTreeType());
+		//	Dixon Martinez 2015-01-09 
+		//	Add support for custom translate trees
+		//String tableName = getSourceTableName(getTreeType());
+		int AD_Table_ID = getAD_Table_ID();
+		String tableName = MTable.getTableName (getCtx(), AD_Table_ID);
+		if("SPS_SyncMenu".equals(tableName))
+			return "NULL";
+		
+		if("SPS_Menu".equals(tableName))
+			return "t.Action";
+		
+		//	Dixon Martinez
 		if ("AD_Menu".equals(tableName))
 			return "t.Action";
 		if ("M_Product".equals(tableName) || "C_BPartner".equals(tableName) 
 			|| "AD_Org".equals(tableName) || "C_Campaign".equals(tableName))
 			return "x.AD_PrintColor_ID";
+		
 		return "NULL";
 	}	//	getSourceTableName
 	

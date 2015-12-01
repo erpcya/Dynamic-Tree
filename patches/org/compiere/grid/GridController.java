@@ -456,8 +456,12 @@ public class GridController extends CPanel
 		if (m_mTab.isTreeTab() && AD_Tree_ID != 0)
 		{
 			m_tree = new VTreePanel(m_WindowNo, false, true);
-			if (m_mTab.getTabNo() == 0)	//	initialize other tabs later
-				m_tree.initTree(AD_Tree_ID);
+			if (m_mTab.getTabNo() == 0){	//	initialize other tabs later
+				String whereClause = m_mTab.getWhereExtended();
+				whereClause = Env.parseContext(Env.getCtx(), m_WindowNo, whereClause, false, false);
+				//	Init Tree
+				m_tree.initTree(AD_Tree_ID, whereClause);	
+			}
 			m_tree.addPropertyChangeListener(VTreePanel.NODE_SELECTION, this);
 			graphPanel.add(m_tree, BorderLayout.CENTER);
 			splitPane.setDividerLocation(250);
@@ -661,9 +665,14 @@ public class GridController extends CPanel
 			if (AD_Tree_ID == 0)
 				AD_Tree_ID = MTree.getDefaultAD_Tree_ID (
 					Env.getAD_Client_ID(Env.getCtx()), m_mTab.getAD_Table_ID());
+			//	Add Where Extended
+			if (m_tree != null){
+				String whereClause = m_mTab.getWhereExtended();
+				whereClause = Env.parseContext(Env.getCtx(), m_WindowNo, whereClause, false, false);
+				//	Init Tree
+				m_tree.initTree(AD_Tree_ID, whereClause);
+			}
 			//	End Yamel Senih
-			if (m_tree != null)
-				m_tree.initTree (AD_Tree_ID);
 		}
 
 		activateChilds();
@@ -722,7 +731,11 @@ public class GridController extends CPanel
 		//  Update UI
 		if (!isSingleRow())
 			vTable.autoSize(true);
-		activateChilds();
+		//	Yamel Senih 2014-09-29, 20:31:53 Refresh tree
+		//	Old Method
+		//activateChilds();
+		activate();
+		//	End Yamel Senih
 	}   //  query
 
 	/*
