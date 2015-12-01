@@ -29,8 +29,6 @@ import org.compiere.util.DB;
  *	
  *  @author Jorg Janke
  *  @version $Id: MTree_Node.java,v 1.3 2006/07/30 00:58:37 jjanke Exp $
- *  @author<a href="mailto:yamelsenih@gmail.com">Yamel Senih</a>
- *  		<li> Add Support to Dynamic Tree 2013/07/02 16:42:57
  */
 public class MTree_Node extends X_AD_TreeNode
 {
@@ -38,47 +36,48 @@ public class MTree_Node extends X_AD_TreeNode
 	 * 
 	 */
 	private static final long serialVersionUID = 5473815124433234331L;
-
+	
+	//	Yamel Senih, FR[ 9223372036854775807 ] Old Method
+//	public static MTree_Node get (MTree_Base tree, int Node_ID)
+//	{
+//		MTree_Node retValue = null;
+//		String sql = "SELECT * FROM AD_TreeNode WHERE AD_Tree_ID=? AND Node_ID=?";
+//		PreparedStatement pstmt = null;
+//		try
+//		{
+//			pstmt = DB.prepareStatement (sql, tree.get_TrxName());
+//			pstmt.setInt (1, tree.getAD_Tree_ID());
+//			pstmt.setInt (2, Node_ID);
+//			ResultSet rs = pstmt.executeQuery ();
+//			if (rs.next ())
+//				retValue = new MTree_Node (tree.getCtx(), rs, tree.get_TrxName());
+//			rs.close ();
+//			pstmt.close ();
+//			pstmt = null;
+//		}
+//		catch (Exception e)
+//		{
+//			s_log.log(Level.SEVERE, sql, e);
+//		}
+//		try
+//		{
+//			if (pstmt != null)
+//				pstmt.close ();
+//			pstmt = null;
+//		}
+//		catch (Exception e)
+//		{
+//			pstmt = null;
+//		}
+//		return retValue;
+//	}	//	get
+	
 	/**
-	 * 	Get Tree Node
-	 *	@param tree tree
-	 *	@param Node_ID node
-	 *	@return node or null
+	 * Get Tree Node FR[ 9223372036854775807 ]
+	 * @param tree
+	 * @param Node_ID
+	 * @return
 	 */
-	//	Yamel Senih, Old Method
-	/*public static MTree_Node1 get (MTree_Base tree, int Node_ID)
-	{
-		MTree_Node1 retValue = null;
-		String sql = "SELECT * FROM AD_TreeNode WHERE AD_Tree_ID=? AND Node_ID=?";
-		PreparedStatement pstmt = null;
-		try
-		{
-			pstmt = DB.prepareStatement (sql, tree.get_TrxName());
-			pstmt.setInt (1, tree.getAD_Tree_ID());
-			pstmt.setInt (2, Node_ID);
-			ResultSet rs = pstmt.executeQuery ();
-			if (rs.next ())
-				retValue = new MTree_Node1 (tree.getCtx(), rs, tree.get_TrxName());
-			rs.close ();
-			pstmt.close ();
-			pstmt = null;
-		}
-		catch (Exception e)
-		{
-			s_log.log(Level.SEVERE, sql, e);
-		}
-		try
-		{
-			if (pstmt != null)
-				pstmt.close ();
-			pstmt = null;
-		}
-		catch (Exception e)
-		{
-			pstmt = null;
-		}
-		return retValue;
-	}	//	get*/
 	public static MTree_Node get (MTree tree, int Node_ID)
 	{
 		MTree_Node retValue = null;
@@ -112,7 +111,6 @@ public class MTree_Node extends X_AD_TreeNode
 		}
 		return retValue;
 	}	//	get
-	//	End Yamel Senih
 
 	/**	Static Logger	*/
 	private static CLogger	s_log	= CLogger.getCLogger (MTree_Node.class);
@@ -133,18 +131,21 @@ public class MTree_Node extends X_AD_TreeNode
 	 *	@param tree tree
 	 *	@param Node_ID node
 	 */
-	//	Yamel Senih, Old Method
-	/*public MTree_Node1 (MTree_Base tree, int Node_ID)
-	{
-		super (tree.getCtx(), 0, tree.get_TrxName());
-		setClientOrg(tree);
-		setAD_Tree_ID (tree.getAD_Tree_ID());
-		setNode_ID(Node_ID);
-		//	Add to root
-		setParent_ID(0);
-		setSeqNo (0);
-	}	//	MTree_Node*/
-	//	End Yamel Senih
+//	public MTree_Node (MTree_Base tree, int Node_ID)
+//	{
+//		super (tree.getCtx(), 0, tree.get_TrxName());
+//		setClientOrg(tree);
+//		setAD_Tree_ID (tree.getAD_Tree_ID());
+//		setNode_ID(Node_ID);
+//		//	Add to root
+//		setParent_ID(0);
+//		setSeqNo (0);
+//	}	//	MTree_Node
+	/**
+	 * FR[ 9223372036854775807 ]
+	 * @param tree
+	 * @param Node_ID
+	 */
 	public MTree_Node (MTree tree, int Node_ID)
 	{
 		super (tree.getCtx(), 0, tree.get_TrxName());

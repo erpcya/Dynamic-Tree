@@ -52,8 +52,9 @@ import org.compiere.util.Language;
  *    [ 1619085 ] Client setup creates duplicate trees
  * @author Teo Sarca, SC ARHIPAC SERVICE SRL
  * 			<li>BF [ 1886480 ] Print Format Item Trl not updated even if not multilingual
- * @author<a href="mailto:yamelsenih@gmail.com">Yamel Senih</a>
- *  		<li> Add Support to Dynamic Tree 2013/07/02 16:42:57
+ * @author Yamel Senih, ysenih@erpcya.com, ERPCyA http://www.erpcya.com
+ *  		<li>FR [ 9223372036854775807 ] Add Support to Dynamic Tree
+ *  		@see https://adempiere.atlassian.net/browse/ADEMPIERE-393 
  */
 public class MClient extends X_AD_Client
 {
@@ -284,7 +285,7 @@ public class MClient extends X_AD_Client
 		return Locale.getDefault();
 	}	//	getLocale
 	
-
+	
 	/**************************************************************************
 	 * 	Create Trees and Setup Client Info
 	 * 	@param language language
@@ -311,98 +312,68 @@ public class MClient extends X_AD_Client
 		{
 			PreparedStatement stmt = DB.prepareStatement(sql, get_TrxName());
 			ResultSet rs = stmt.executeQuery();
-			//	Dixon Martinez
-			//	20/08/2014
-			//	Add support to create tree of process create client
-			//	Old Code
-			//	MTree_Base tree = null;
+			//	Yamel Senih  FR[ 9223372036854775807 ]
 			MTree tree = null;
 			while (rs.next())
 			{
 				String value = rs.getString(1);
 				String name = getName() + " " + rs.getString(2);
-				//	Yamel Senih
 				if (value.equals(X_AD_Tree.TREETYPE_CustomTree)
 						|| value.startsWith("U"))
 						continue;
-				//	End Yamel Senih
 				//
 				if (value.equals(X_AD_Tree.TREETYPE_Organization))
 				{
-					//	Old Code
-					/*tree = new MTree_Base (this, name, value);
-					success = tree.save();
-					*/
+					//tree = new MTree_Base (this, name, value);
 					tree = new MTree(this, name, value);
 					success = tree.save();
 					AD_Tree_Org_ID = tree.getAD_Tree_ID();
 				}
 				else if (value.equals(X_AD_Tree.TREETYPE_BPartner))
 				{
-					//	Old Code
-					/*tree = new MTree_Base (this, name, value);
-					success = tree.save();
-					*/
+					//tree = new MTree_Base (this, name, value);
 					tree = new MTree(this, name, value);
 					success = tree.save();
 					AD_Tree_BPartner_ID = tree.getAD_Tree_ID();
 				}
 				else if (value.equals(X_AD_Tree.TREETYPE_Project))
 				{
-					//	Old Code
-					/*tree = new MTree_Base (this, name, value);
-					success = tree.save();
-					*/
+					//tree = new MTree_Base (this, name, value);
 					tree = new MTree(this, name, value);
 					success = tree.save();
 					AD_Tree_Project_ID = tree.getAD_Tree_ID();
 				}
 				else if (value.equals(X_AD_Tree.TREETYPE_SalesRegion))
 				{
-					//	Old Code
-					/*tree = new MTree_Base (this, name, value);
-					success = tree.save();
-					*/
+					//tree = new MTree_Base (this, name, value);
 					tree = new MTree(this, name, value);
 					success = tree.save();
 					AD_Tree_SalesRegion_ID = tree.getAD_Tree_ID();
 				}
 				else if (value.equals(X_AD_Tree.TREETYPE_Product))
 				{
-					//	Old Code
-					/*tree = new MTree_Base (this, name, value);
-					success = tree.save();
-					*/
+					//tree = new MTree_Base (this, name, value);
 					tree = new MTree(this, name, value);
 					success = tree.save();
 					AD_Tree_Product_ID = tree.getAD_Tree_ID();
 				}
 				else if (value.equals(X_AD_Tree.TREETYPE_ElementValue))
 				{
-					//	Old Code
-					/*tree = new MTree_Base (this, name, value);
-					success = tree.save();
-					*/
+					//tree = new MTree_Base (this, name, value);
 					tree = new MTree(this, name, value);
 					success = tree.save();
 					m_AD_Tree_Account_ID = tree.getAD_Tree_ID();
 				}
 				else if (value.equals(X_AD_Tree.TREETYPE_Campaign))
 				{
-					//	Old Code
-					/*tree = new MTree_Base (this, name, value);
-					success = tree.save();
-					*/
+					//tree = new MTree_Base (this, name, value);
 					tree = new MTree(this, name, value);
 					success = tree.save();
 					AD_Tree_Campaign_ID = tree.getAD_Tree_ID();
 				}
 				else if (value.equals(X_AD_Tree.TREETYPE_Activity))
 				{
-					//	Old Code
-					/*tree = new MTree_Base (this, name, value);
-					success = tree.save();
-					*/
+					//tree = new MTree_Base (this, name, value);
 					tree = new MTree(this, name, value);
 					success = tree.save();
 					AD_Tree_Activity_ID = tree.getAD_Tree_ID();
@@ -411,10 +382,7 @@ public class MClient extends X_AD_Client
 					success = true;
 				else	//	PC (Product Category), BB (BOM)
 				{
-					//	Old Code
-					/*tree = new MTree_Base (this, name, value);
-					success = tree.save();
-					*/
+					//tree = new MTree_Base (this, name, value);
 					tree = new MTree(this, name, value);
 					success = tree.save();
 				}
@@ -738,7 +706,7 @@ public class MClient extends X_AD_Client
 			um.setMessageID(email.getSentMsg());
 			um.setIsDelivered(X_AD_UserMail.ISDELIVERED_No);
 		}
-		um.save();
+		um.saveEx();
 
 		//
 		if (email.isSentOK())

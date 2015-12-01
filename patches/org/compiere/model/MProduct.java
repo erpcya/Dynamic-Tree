@@ -43,12 +43,13 @@ import org.compiere.util.Msg;
  * 
  * @author Mark Ostermann (mark_o), metas consult GmbH
  * 			<li>BF [ 2814628 ] Wrong evaluation of Product inactive in beforeSave()
- * @author<a href="mailto:yamelsenih@gmail.com">Yamel Senih</a>
- *  		<li> Add Support to Dynamic Tree 2013/07/02 16:42:57
+ * 
+ * @author Yamel Senih, ysenih@erpcya.com, ERPCyA http://www.erpcya.com
+ *  		<li>FR [ 9223372036854775807 ] Add Support to Dynamic Tree
+ *  		@see https://adempiere.atlassian.net/browse/ADEMPIERE-393
  */
 public class MProduct extends X_M_Product
 {
-
 	/**
 	 * 
 	 */
@@ -480,8 +481,9 @@ public class MProduct extends X_M_Product
 		MProductCategory pc = MProductCategory.get(getCtx(), getM_Product_Category_ID());
 		if (pc.getA_Asset_Group_ID() == 0)
 			return false;
-		MAssetGroup ag = MAssetGroup.get(getCtx(), pc.getA_Asset_Group_ID());
-		return ag.isOneAssetPerUOM();
+		//MAssetGroup.get(getCtx(), pc.getA_Asset_Group_ID());
+		//return ag.isOneAssetPerUOM();
+		return  pc.getA_Asset_Group().isOneAssetPerUOM();
 	}	//	isOneAssetPerUOM
 	
 	/**
@@ -691,7 +693,7 @@ public class MProduct extends X_M_Product
 		{
 			insert_Accounting("M_Product_Acct", "M_Product_Category_Acct",
 				"p.M_Product_Category_ID=" + getM_Product_Category_ID());
-			//	Yamel Senih
+			//	Yamel Senih, FR[ 9223372036854775807 ]
 			//insert_Tree(X_AD_Tree.TREETYPE_Product);
 			//	End Yamel Senih
 			//
@@ -700,7 +702,7 @@ public class MProduct extends X_M_Product
 			{
 				//	Old
 				MProductCosting pcOld = new MProductCosting(this, mass[i].getC_AcctSchema_ID());
-				pcOld.save();
+				pcOld.saveEx();
 			}
 		}
 		
@@ -801,13 +803,14 @@ public class MProduct extends X_M_Product
 		return delete_Accounting("M_Product_Acct"); 
 	}	//	beforeDelete
 	
-	//@Override
-	//protected boolean afterDelete (boolean success)
-	//{
-		//if (success)
-			//delete_Tree(X_AD_Tree.TREETYPE_Product);
-		//return success;
-	//}	//	afterDelete
+	//	Yamel Senih, FR[ 9223372036854775807 ]
+//	@Override
+//	protected boolean afterDelete (boolean success)
+//	{
+//		if (success)
+//			delete_Tree(X_AD_Tree.TREETYPE_Product);
+//		return success;
+//	}	//	afterDelete
 	
 	/**
 	 * Get attribute instance for this product by attribute name
@@ -847,13 +850,52 @@ public class MProduct extends X_M_Product
 	 * Check if ASI is mandatory
 	 * @param isSOTrx is outgoing trx?
 	 * @return true if ASI is mandatory, false otherwise
+	 * @deprecated
 	 */
+	/*
 	public boolean isASIMandatory(boolean isSOTrx) {
 		//
 		//	If CostingLevel is BatchLot ASI is always mandatory - check all client acct schemas
 		MAcctSchema[] mass = MAcctSchema.getClientAcctSchema(getCtx(), getAD_Client_ID(), get_TrxName());
 		for (MAcctSchema as : mass)
 		{
+			String cl = getCostingLevel(as);
+			if (MAcctSchema.COSTINGLEVEL_BatchLot.equals(cl)) {
+				return true;
+			}
+		}
+		//
+		// Check Attribute Set settings
+		int M_AttributeSet_ID = getM_AttributeSet_ID();
+		if (M_AttributeSet_ID != 0)
+		{
+			MAttributeSet mas = MAttributeSet.get(getCtx(), M_AttributeSet_ID);
+			if (mas == null || !mas.isInstanceAttribute())
+				return false;
+			// Outgoing transaction
+			else if (isSOTrx)
+				return mas.isMandatory();
+			// Incoming transaction
+			else // isSOTrx == false
+				return mas.isMandatoryAlways();
+		}
+		//
+		// Default not mandatory
+		return false;
+	}*/
+	
+	/**
+	 * Check if ASI is mandatory
+	 * @param isSOTrx is outgoing trx?
+	 * @return true if ASI is mandatory, false otherwise
+	 */
+	public boolean isASIMandatory(boolean isSOTrx,int AD_Org_ID) {
+		//
+		//	If CostingLevel is BatchLot ASI is always mandatory - check all client acct schemas
+		MAcctSchema[] mass = MAcctSchema.getClientAcctSchema(getCtx(), getAD_Client_ID(), get_TrxName());
+		for (MAcctSchema as : mass)
+		{
+			//String cl = getCostingLevel(as,AD_Org_ID);
 			String cl = getCostingLevel(as);
 			if (MAcctSchema.COSTINGLEVEL_BatchLot.equals(cl)) {
 				return true;
@@ -884,9 +926,39 @@ public class MProduct extends X_M_Product
 	 * @param as accounting schema
 	 * @return product costing level
 	 */
+	
 	public String getCostingLevel(MAcctSchema as)
 	{
 		MProductCategoryAcct pca = MProductCategoryAcct.get(getCtx(), getM_Product_Category_ID(), as.get_ID(), get_TrxName());
+		String costingLevel = null;
+		
+		if (pca != null)
+		{
+			costingLevel = pca.getCostingLevel();
+			if (costingLevel == null)
+			{
+				costingLevel = as.getCostingLevel();
+			}	
+		}
+		
+		return costingLevel;
+	}
+
+	
+	/**
+	 * Get Product Costing Level
+	 * @param as accounting schema
+	 * @param AD_Org_ID Organization ID
+	 * @return product costing level
+	 */
+	public String getCostingLevel(MAcctSchema as,int AD_Org_ID)
+	{	
+		MProductCategoryAcct pca = MProductCategoryAcct.get(getCtx(), getM_Product_Category_ID(), as.get_ID(), AD_Org_ID , get_TrxName());
+		if(pca == null)
+		{
+			return  getCostingLevel(as);
+		}
+		
 		String costingLevel = pca.getCostingLevel();
 		if (costingLevel == null)
 		{
@@ -894,20 +966,70 @@ public class MProduct extends X_M_Product
 		}
 		return costingLevel;
 	}
+
 	
 	/**
 	 * Get Product Costing Method
-	 * @param C_AcctSchema_ID accounting schema ID
+	 * @param accountSchema accounting schema ID
 	 * @return product costing method
 	 */
-	public String getCostingMethod(MAcctSchema as)
+	public String getCostingMethod(MAcctSchema accountSchema)
 	{
-		MProductCategoryAcct pca = MProductCategoryAcct.get(getCtx(), getM_Product_Category_ID(), as.get_ID(), get_TrxName());
+		MProductCategoryAcct pca = MProductCategoryAcct.get(getCtx(), getM_Product_Category_ID(), accountSchema.get_ID(), get_TrxName());
 		String costingMethod = pca.getCostingMethod();
 		if (costingMethod == null)
 		{
-			costingMethod = as.getCostingMethod();
+			costingMethod = accountSchema.getCostingMethod();
 		}
 		return costingMethod;
+	}
+	
+	/**
+	 * Get Product Costing Method
+	 * @param assetSchema accounting schema ID
+	 * @return product costing method
+	 */
+	public String getCostingMethod(MAcctSchema assetSchema , int AD_Org_ID)
+	{
+		MProductCategoryAcct pca = MProductCategoryAcct.get(getCtx(), getM_Product_Category_ID(), assetSchema.get_ID() , AD_Org_ID, get_TrxName());
+		String costingMethod = pca.getCostingMethod();
+		if (costingMethod == null)
+		{
+			costingMethod = assetSchema.getCostingMethod();
+		}
+		return costingMethod;
+	}
+
+	/**
+	 * Get the Attribute Set Instance.  This is called by callouts to fill the M_AttributeSetInstance_ID
+	 * field.  The ASI should override the context if the product has a defined ASI or if the 
+	 * context ASI does not use the same attribute set.
+	 * @param ctx
+	 * @param WindowNo number
+	 */
+	public Integer getEnvAttributeSetInstance(Properties ctx, int WindowNo)
+	{
+		Integer M_AttributeSetInstance_ID = 0;
+
+		//	Set Attribute Instance from the context
+		M_AttributeSetInstance_ID = Env.getContextAsInt(ctx, WindowNo, Env.TAB_INFO, "M_AttributeSetInstance_ID");
+		//	Get Model and check if it has a product attribute instance
+		if (getM_AttributeSetInstance_ID() > 0)
+		{
+			//  If the product has a product instance associated with it. Use it regardless of the context.
+			//  Product Attributes and Instance Attributes are exclusive
+				M_AttributeSetInstance_ID = new Integer(getM_AttributeSetInstance_ID());
+		} 
+		else if (getM_AttributeSet_ID() > 0 && M_AttributeSetInstance_ID > 0)
+		{
+			// Check compatibility of the instance with the product - they have to use the same set.
+			MAttributeSetInstance masi = MAttributeSetInstance.get(Env.getCtx(),M_AttributeSetInstance_ID,this.getM_Product_ID());
+			if (masi.getMAttributeSet().get_ID() != this.getAttributeSet().get_ID())
+				M_AttributeSetInstance_ID = 0;  
+		}
+		if (M_AttributeSetInstance_ID != 0)
+			return M_AttributeSetInstance_ID;
+		else
+			return null;
 	}
 }	//	MProduct

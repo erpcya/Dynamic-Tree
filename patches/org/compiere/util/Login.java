@@ -22,22 +22,16 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.logging.Level;
 
-import javax.swing.JOptionPane;
+import javax.swing.*;
 
 import org.compiere.Adempiere;
 import org.compiere.db.CConnection;
-import org.compiere.model.I_M_Warehouse;
-import org.compiere.model.MAcctSchema;
-import org.compiere.model.MClientInfo;
-import org.compiere.model.MCountry;
-import org.compiere.model.MRole;
-import org.compiere.model.MSystem;
-import org.compiere.model.MTree;
-import org.compiere.model.ModelValidationEngine;
+import org.compiere.model.*;
 
 
 /**
@@ -50,9 +44,11 @@ import org.compiere.model.ModelValidationEngine;
  *  @author teo.sarca@gmail.com
  *  	<li>BF [ 2867246 ] Do not show InTrazit WHs on login
  *  		https://sourceforge.net/tracker/?func=detail&aid=2867246&group_id=176962&atid=879332
+ *  
+ *  @author Yamel Senih, ysenih@erpcya.com, ERPCyA http://www.erpcya.com
+ *  	<li>FR [ 9223372036854775807 ] Add Support to Dynamic Tree
+ *  	@see https://adempiere.atlassian.net/browse/ADEMPIERE-393
  *  @version $Id: Login.java,v 1.6 2006/10/02 05:19:06 jjanke Exp $
- *  @author<a href="mailto:yamelsenih@gmail.com">Yamel Senih</a>
- *  		<li> Add Support to Dynamic Tree 2013/07/02 16:42:57
  */
 public class Login
 {
@@ -103,14 +99,17 @@ public class Login
 	{
 		//	Java System version check
 		String jVersion = System.getProperty("java.version");
-		if (jVersion.startsWith("1.5.0"))
-			return true;
+		//if (jVersion.startsWith("1.5.0"))
+		//	return true;
         //vpj-cd e-evolution support to java 6
-        if (jVersion.startsWith("1.6.0"))
-			return true;
+        //if (jVersion.startsWith("1.6.0"))
+		//	return true;
         //Add ADEMPIERE-86 Add JAVA 7.0 support in ADempiere
         if (jVersion.startsWith("1.7.0"))
 			return true;
+        //Add ADEMPIERE-86 Add JAVA 8.0 support in ADempiere
+        if (jVersion.startsWith("1.8.0"))
+            return true;
         //end
 		//  Warning
 		boolean ok = false;
@@ -123,7 +122,8 @@ public class Login
 		msg.append(System.getProperty("java.vm.name")).append(" - ").append(jVersion);
 		if (ok)
 			msg.append("(untested)");
-		msg.append("  <>  1.5.0");
+		//msg.append(" <> 1.5.0, 1.6.0, 1.7.0 1.8.0");
+        msg.append(" <> 1.7.0 , 1.8.0");
 		//
 		if (isClient)
 			JOptionPane.showMessageDialog(null, msg.toString(),
@@ -245,7 +245,7 @@ public class Login
 			return null;
 		}
 
-		//	Authentification
+		//	Authentication
 		boolean authenticated = false;
 		if (Ini.isClient())
 			CConnection.get().setAppServerCredential(app_user, app_pwd);
@@ -266,6 +266,47 @@ public class Login
 			// if not authenticated, use AD_User as backup
 		}
 		
+
+		// adaxa-pb: try to authenticate using hashed password -- falls back to plain text/encrypted
+		final String where = " COALESCE(LDAPUser,Name) = ? AND" +
+				" EXISTS (SELECT * FROM AD_User_Roles ur" +
+				"         INNER JOIN AD_Role r ON (ur.AD_Role_ID=r.AD_Role_ID)" +
+				"         WHERE ur.AD_User_ID=AD_User.AD_User_ID AND ur.IsActive='Y' AND r.IsActive='Y') AND " +
+				" EXISTS (SELECT * FROM AD_Client c" +
+				"         WHERE c.AD_Client_ID=AD_User.AD_Client_ID" +
+				"         AND c.IsActive='Y') AND " +
+				" AD_User.IsActive='Y'";
+
+        List<Object> parameters  = new ArrayList<Object>();
+        parameters.add(app_user);
+        //Get User ID and hash Password
+        final ValueNamePair[]  passwordHash = DB.getValueNamePairs("SELECT  AD_User_ID , Password FROM AD_User WHERE " + where , false  ,parameters);
+
+        String hash = null;
+        String salt = null;
+        int AD_User_ID = 0;
+        //Validate if password column is encrypted
+        boolean isEncrypted = MColumn.isEncrypted(417);
+
+        //Validate  password hash
+        if ( passwordHash != null && passwordHash.length > 0)
+        {
+            AD_User_ID = new Integer (passwordHash[0].getValue());
+            hash = isEncrypted ? SecureEngine.decrypt(passwordHash[0].getName()) : passwordHash[0].getName();
+            salt = DB.getSQLValueString(null, "SELECT Salt FROM AD_User WHERE AD_User_ID=?", AD_User_ID);
+        }
+
+		if ( hash == null )
+			hash = "0000000000000000";
+		if ( salt == null )
+			salt = "0000000000000000";
+
+		if ( MUser.authenticateHash(app_pwd, hash , salt) )
+		{
+			authenticated = true;
+			app_pwd = null;
+		}
+
 		KeyNamePair[] retValue = null;
 		ArrayList<KeyNamePair> list = new ArrayList<KeyNamePair>();
 		//
@@ -273,20 +314,27 @@ public class Login
 			.append(" u.ConnectionProfile ")
 			.append("FROM AD_User u")
 			.append(" INNER JOIN AD_User_Roles ur ON (u.AD_User_ID=ur.AD_User_ID AND ur.IsActive='Y')")
-			.append(" INNER JOIN AD_Role r ON (ur.AD_Role_ID=r.AD_Role_ID AND r.IsActive='Y') ")
-			.append("WHERE COALESCE(u.LDAPUser,u.Name)=?")		//	#1
-			.append(" AND u.IsActive='Y'")
+			.append(" INNER JOIN AD_Role r ON (ur.AD_Role_ID=r.AD_Role_ID AND r.IsActive='Y') ");
+			if ( AD_User_ID > 0 )
+				sql.append( "WHERE u.AD_User_ID = ?");          // #1
+			else 
+				sql.append("WHERE COALESCE(u.LDAPUser,u.Name)=?");		//	#1
+			sql.append(" AND u.IsActive='Y'")
 			.append(" AND EXISTS (SELECT * FROM AD_Client c WHERE u.AD_Client_ID=c.AD_Client_ID AND c.IsActive='Y')");
 		if (app_pwd != null)
 			sql.append(" AND ((u.Password=? AND (SELECT IsEncrypted FROM AD_Column WHERE AD_Column_ID=417)='N') " 
 					+     "OR (u.Password=? AND (SELECT IsEncrypted FROM AD_Column WHERE AD_Column_ID=417)='Y'))");	//  #2/3
 		sql.append(" ORDER BY r.Name");
+		
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
 		try
 		{
 			pstmt = DB.prepareStatement(sql.toString(), null);
-			pstmt.setString(1, app_user);
+			if ( AD_User_ID > 0 )
+				pstmt.setInt(1, AD_User_ID);
+			else
+				pstmt.setString(1, app_user);
 			if (app_pwd != null)
 			{
 				pstmt.setString(2, app_pwd);
@@ -320,6 +368,7 @@ public class Login
 			Env.setContext(m_ctx, "#AD_User_Name", app_user);
 			Env.setContext(m_ctx, "#AD_User_ID", rs.getInt(1));
 			Env.setContext(m_ctx, "#SalesRep_ID", rs.getInt(1));
+
 			//
 			if (Ini.isClient())
 			{
@@ -588,9 +637,9 @@ public class Login
 			return;
 		}
 		//	Summary Org - Get Dependents
-		//	Yamel Senih, Change for MTree
+		//	Yamel Senih, FR[ 9223372036854775807 ]
+		//MTree_Base tree = MTree_Base.get(m_ctx, role.getAD_Tree_Org_ID(), null);
 		MTree tree = MTree.get(m_ctx, role.getAD_Tree_Org_ID(), null);
-		//	End Yamel Senih
 		String sql =  "SELECT AD_Client_ID, AD_Org_ID, Name, IsSummary FROM AD_Org "
 			+ "WHERE IsActive='Y' AND AD_Org_ID IN (SELECT Node_ID FROM "
 			+ tree.getNodeTableName()

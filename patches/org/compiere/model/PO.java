@@ -56,6 +56,7 @@ import org.compiere.util.Msg;
 import org.compiere.util.SecureEngine;
 import org.compiere.util.Trace;
 import org.compiere.util.Trx;
+import org.compiere.util.TrxRunnable;
 import org.compiere.util.ValueNamePair;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -89,8 +90,11 @@ import org.w3c.dom.Element;
  *			<li>http://sourceforge.net/tracker/index.php?func=detail&aid=2195894&group_id=176962&atid=879335
  *			<li>BF [2947622] The replication ID (Primary Key) is not working
  *			<li>https://sourceforge.net/tracker/?func=detail&aid=2947622&group_id=176962&atid=879332
- * @author<a href="mailto:yamelsenih@gmail.com">Yamel Senih</a>
- *  		<li> Add Support to Dynamic Tree 2013/07/02 16:42:57
+ *			<li>Error when try load a PO Entity with virtual columns
+ *			<li>http://adempiere.atlassian.net/browse/ADEMPIERE-100
+ * @author Yamel Senih, ysenih@erpcya.com, ERPCyA http://www.erpcya.com
+ *  	<li>FR [ 9223372036854775807 ] Add Support to Dynamic Tree
+ *  	@see http://adempiere.atlassian.net/browse/ADEMPIERE-393
  */
 public abstract class PO
 	implements Serializable, Comparator, Evaluatee, Cloneable
@@ -303,6 +307,8 @@ public abstract class PO
 	 */
 	public boolean equals (Object cmp)
 	{
+		if (this == cmp)
+			return true;
 		if (cmp == null)
 			return false;
 		if (!(cmp instanceof PO))
@@ -369,7 +375,7 @@ public abstract class PO
 
 	/**
 	 *  Get Key Columns.
-	 *  @return table name
+	 *  @return key column name(s)
 	 */
 	public String[] get_KeyColumns()
 	{
@@ -1351,7 +1357,7 @@ public abstract class PO
 			}
 			else
 			{
-				log.log(Level.WARNING, "NO Data found for " + get_WhereClause(true));
+				if (!log.getLevel().equals(Level.CONFIG)) log.log(Level.WARNING, "NO Data found for " + get_WhereClause(true));
 				m_IDs = new Object[] {I_ZERO};
 				success = false;
 			//	throw new DBException("NO Data found for " + get_WhereClause(true));
@@ -1402,6 +1408,9 @@ public abstract class PO
 			String columnName = p_info.getColumnName(index);
 			Class<?> clazz = p_info.getColumnClass(index);
 			int dt = p_info.getColumnDisplayType(index);
+			//ADEMPIERE-100
+			if(p_info.isVirtualColumn(index))
+				continue;
 			try
 			{
 				if (clazz == Integer.class)
@@ -1412,7 +1421,7 @@ public abstract class PO
 					m_oldValues[index] = new Boolean ("Y".equals(decrypt(index, rs.getString(columnName))));
 				else if (clazz == Timestamp.class)
 					m_oldValues[index] = decrypt(index, rs.getTimestamp(columnName));
-				else if (DisplayType.isLOB(dt))
+				else if (DisplayType.isLOB(dt) || (DisplayType.isText(dt) && p_info.getFieldLength(index) > 4000))
 					m_oldValues[index] = get_LOB (rs.getObject(columnName));
 				else if (clazz == String.class)
 					m_oldValues[index] = decrypt(index, rs.getString(columnName));
@@ -1638,6 +1647,29 @@ public abstract class PO
 				m_newValues[i] = new Boolean(false);
 			else if (colName.equals("Posted"))
 				m_newValues[i] = new Boolean(false);
+			else if (p_info.getDefaultLogic(i) != null) {
+				GridFieldVO valueObject = GridFieldVO.createStdField(Env.getCtx(), 0 , 0, 0, 0, false, false, false);
+				valueObject.isProcess = true;
+				valueObject.IsUpdateable = p_info.getColumn(i).IsUpdateable;
+				valueObject.AD_Column_ID = p_info.getColumn(i).AD_Column_ID;
+				valueObject.AD_Table_ID = p_info.getAD_Table_ID();
+				valueObject.ColumnName =  p_info.getColumn(i).ColumnName;
+				valueObject.displayType =  p_info.getColumn(i).DisplayType;
+				valueObject.AD_Reference_Value_ID =  p_info.getColumn(i).AD_Reference_Value_ID;
+				valueObject.IsMandatory =  p_info.getColumn(i).IsMandatory;
+				valueObject.IsKey =  p_info.getColumn(i).IsKey;
+				valueObject.DefaultValue = p_info.getColumn(i).DefaultLogic;
+				valueObject.ValueMin = p_info.getColumn(i).ValueMin;
+				valueObject.ValueMax =  p_info.getColumn(i).ValueMin;
+				valueObject.ValidationCode =  p_info.getColumn(i).ValidationCode;
+				valueObject.Description =  p_info.getColumn(i).ColumnDescription;
+				valueObject.ColumnSQL =  p_info.getColumn(i).ColumnSQL;
+				valueObject.Header =  p_info.getColumn(i).ColumnLabel;
+				valueObject.initFinish();
+
+				GridField field = new GridField(valueObject);
+				m_newValues[i] = field.getDefault();
+			}
 		}
 	}   //  setDefaults
 
@@ -2205,7 +2237,7 @@ public abstract class PO
 			try
 			{
 				success = afterSave (newRecord, success);
-				//	Yamel Senih Add Insert Tree Node
+				//	Yamel Senih, FR[ 9223372036854775807 ]
 				if (success && newRecord)
 					insertTreeNode();
 				//	End Yamel Senih
@@ -2397,7 +2429,7 @@ public abstract class PO
 					continue;
 				updated = true;
 			}
-			if (DisplayType.isLOB(dt))
+			if (DisplayType.isLOB(dt) || (DisplayType.isText(dt) && p_info.getFieldLength(i) > 4000))
 			{
 				lobAdd (value, i, dt);
 				//	If no changes set UpdatedBy explicitly to ensure commit of lob
@@ -2652,7 +2684,7 @@ public abstract class PO
 
 			//	Display Type
 			int dt = p_info.getColumnDisplayType(i);
-			if (DisplayType.isLOB(dt))
+			if (DisplayType.isLOB(dt) || (DisplayType.isText(dt) && p_info.getFieldLength(i) > 4000))
 			{
 				lobAdd (value, i, dt);
 				continue;
@@ -3034,7 +3066,7 @@ public abstract class PO
 		try
 		{
 			success = afterDelete (success);
-			//	Yamel Senih Add Delete Tree Node
+			//	Yamel Senih, FR[ 9223372036854775807 ]
 			if (success)
 				deleteTreeNode();
 			//	End Yamel Senih
@@ -3165,7 +3197,7 @@ public abstract class PO
 	 * 	Insert (missing) Translation Records
 	 * 	@return false if error (true if no translation or success)
 	 */
-	private boolean insertTranslations()
+	public boolean insertTranslations()
 	{
 		//	Not a translation table
 		if (m_IDs.length > 1
@@ -3393,11 +3425,10 @@ public abstract class PO
 	 * 	@param treeType MTree TREETYPE_*
 	 *	@return true if inserted
 	 */
-	//	Yamel Senih Add Dynamic Tree
-	//protected boolean insert_Tree (String treeType)
-	//{
-		//return insert_Tree (treeType, 0);
-	//}	//	insert_Tree
+//	protected boolean insert_Tree (String treeType)
+//	{
+//		return insert_Tree (treeType, 0);
+//	}	//	insert_Tree
 
 	/**
 	 * 	Insert id data into Tree
@@ -3405,58 +3436,84 @@ public abstract class PO
 	 * 	@param C_Element_ID element for accounting element values
 	 *	@return true if inserted
 	 */
-	//	Old method
-	/*protected boolean insert_Tree (String treeType, int C_Element_ID)
-	{		
-		String tableName = MTree_Base.getNodeTableName(treeType);
-		final StringBuilder select = new StringBuilder("SELECT t.AD_Tree_ID FROM AD_Tree t WHERE t.AD_Client_ID=").append(getAD_Client_ID()).append(" AND t.IsActive='Y'"); 
-		if (C_Element_ID != 0)
-			select.append(" AND EXISTS (SELECT * FROM C_Element ae WHERE ae.C_Element_ID=")
-				.append(C_Element_ID).append(" AND t.AD_Tree_ID=ae.AD_Tree_ID)");
-		else	//	std trees
-			select.append(" AND t.IsAllNodes='Y' AND t.TreeType='").append(treeType).append("'");
-		//	Duplicate Check
-		select.append(" AND NOT EXISTS (SELECT * FROM " + MTree_Base.getNodeTableName(treeType) + " e "
-				+ "WHERE e.AD_Tree_ID=t.AD_Tree_ID AND Node_ID=").append(get_ID()).append(")");
-		int AD_Tree_ID = DB.getSQLValue(get_TrxName(), select.toString());
-		
-		PO1 tree = MTable.get(getCtx(), tableName).getPO(0, get_TrxName());
-		tree.setAD_Client_ID(getAD_Client_ID());
-		tree.setAD_Org_ID(0);
-		tree.setIsActive(true);
-		tree.set_CustomColumn("AD_Tree_ID",AD_Tree_ID);
-		tree.set_CustomColumn("Node_ID", get_ID());
-		tree.set_CustomColumn("Parent_ID", 0);
-		tree.set_CustomColumn("SeqNo", 999);
-		tree.saveEx();
-		return true;
-	}	//	insert_Tree*/
+	//	Yamel Senih, FR[ 9223372036854775807 ] Old Method
+//	protected boolean insert_Tree (String treeType, int C_Element_ID)
+//	{		
+//		String tableName = MTree_Base.getNodeTableName(treeType);
+//		final StringBuilder select = new StringBuilder("SELECT t.AD_Tree_ID FROM AD_Tree t WHERE t.AD_Client_ID=").append(getAD_Client_ID()).append(" AND t.IsActive='Y'"); 
+//		if (C_Element_ID != 0)
+//			select.append(" AND EXISTS (SELECT * FROM C_Element ae WHERE ae.C_Element_ID=")
+//				.append(C_Element_ID).append(" AND t.AD_Tree_ID=ae.AD_Tree_ID)");
+//		else	//	std trees
+//			select.append(" AND t.IsAllNodes='Y' AND t.TreeType='").append(treeType).append("'");
+//		//	Duplicate Check
+//		select.append(" AND NOT EXISTS (SELECT * FROM " + MTree_Base.getNodeTableName(treeType) + " e "
+//				+ "WHERE e.AD_Tree_ID=t.AD_Tree_ID AND Node_ID=").append(get_ID()).append(")");
+//		int AD_Tree_ID = DB.getSQLValue(get_TrxName(), select.toString());
+//		
+//		PO tree = MTable.get(getCtx(), tableName).getPO(0, get_TrxName());
+//		tree.setAD_Client_ID(getAD_Client_ID());
+//		tree.setAD_Org_ID(0);
+//		tree.setIsActive(true);
+//		tree.set_CustomColumn("AD_Tree_ID",AD_Tree_ID);
+//		tree.set_CustomColumn("Node_ID", get_ID());
+//		tree.set_CustomColumn("Parent_ID", 0);
+//		tree.set_CustomColumn("SeqNo", 999);
+//		tree.saveEx();
+//		return true;
+//	}	//	insert_Tree
 
 	/**
 	 * 	Delete ID Tree Nodes
 	 *	@param treeType MTree TREETYPE_*
 	 *	@return true if deleted
 	 */
-	/*protected boolean delete_Tree (String treeType)
-	{
-		int id = get_ID();
-		if (id == 0)
-			id = get_IDOld();
-		
-		String tableName = MTree_Base.getNodeTableName(treeType);
-		String whereClause = "Node_ID="+id+ " AND EXISTS (SELECT * FROM AD_Tree t "
-				+ "WHERE t.AD_Tree_ID=AD_Tree_ID AND t.TreeType='" + treeType + "')";
-		
-		PO1 tree = MTable.get(getCtx(), tableName).getPO(whereClause, get_TrxName());
-		tree.deleteEx(true);
-		return true;
-	}	//	delete_Tree*/
-
+	//	Yamel Senih, FR[ 9223372036854775807 ] Old Method
+//	protected boolean delete_Tree (String treeType)
+//	{
+//		int id = get_ID();
+//		if (id == 0)
+//			id = get_IDOld();
+//		
+//		String tableName = MTree_Base.getNodeTableName(treeType);
+//		String whereClause = tableName + ".Node_ID="+id+ " AND EXISTS (SELECT * FROM AD_Tree t "
+//				+ "WHERE t.AD_Tree_ID="+tableName+".AD_Tree_ID AND t.TreeType='" + treeType + "')";
+//		
+//		PO tree = MTable.get(getCtx(), tableName).getPO(whereClause, get_TrxName());
+//		if (tree != null)
+//			tree.deleteEx(true);
+//		return true;
+//	}	//	delete_Tree
+	
 	/**************************************************************************
-	 * 	Insert id data into Tree
+	 *  Insert id data into Tree FR[ 9223372036854775807 ]
 	 *	@return true if inserted
 	 */
-	private boolean insertTreeNode()
+	public boolean insertTreeNode()
+	{
+		int AD_Table_ID = get_Table_ID();
+		if (!MTree.hasTree(AD_Table_ID))
+			return false;
+		int p_Record_ID = get_ID();
+
+		int p_AD_Tree_ID = MTree.getDefaultAD_Tree_ID(getAD_Client_ID(), get_Table_ID());
+		MTree tree =new MTree(getCtx(), p_AD_Tree_ID, get_TrxName());
+		int no = 0;
+		if(MTree.addNode(getCtx(), p_Record_ID, tree, get_TrxName()))
+    		no++;
+
+		if (no > 0)
+			log.fine("#" + no + " - AD_Table_ID=" + AD_Table_ID);
+		else
+			log.warning("#" + no + " - AD_Table_ID=" + AD_Table_ID);
+		return no > 0;
+	}	//	insert_Tree
+
+	/**************************************************************************
+	 *  Insert id data into Tree FR[ 9223372036854775807 ]
+	 *	@return true if inserted
+	 */
+	private boolean insertTreeNode2()
 	{
 		int AD_Table_ID = get_Table_ID();
 		if (!MTree.hasTree(AD_Table_ID))
@@ -3500,7 +3557,7 @@ public abstract class PO
 	}	//	insert_Tree
 
 	/**
-	 * 	Delete ID Tree Nodes
+	 * 	Delete ID Tree Nodes FR[ 9223372036854775807 ]
 	 *	@return true if actually deleted (could be non existing)
 	 */
 	private boolean deleteTreeNode()
@@ -3529,9 +3586,7 @@ public abstract class PO
 			log.warning("#" + no + " - AD_Table_ID=" + AD_Table_ID);
 		return no > 0;
 	}	//	delete_Tree
-	
-	//	End Yamel Senih
-	
+
 	/**************************************************************************
 	 * 	Lock it.
 	 * 	@return true if locked
@@ -4150,6 +4205,4 @@ public abstract class PO
 		clone.m_isReplication = false;
 		return clone;
 	}
-
-
 }   //  PO

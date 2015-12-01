@@ -54,9 +54,11 @@ import org.compiere.util.Util;
  * 			https://sourceforge.net/tracker/?func=detail&aid=3426137&group_id=176962&atid=879335 
  *  		<li>FR [ 3426233 ] New Table should create the required columns
  * 			https://sourceforge.net/tracker/?func=detail&aid=3426233&group_id=176962&atid=879335
+ * 
+ * 	@author Yamel Senih, ysenih@erpcya.com, ERPCyA http://www.erpcya.com
+ *  	<li>FR [ 9223372036854775807 ] Add Support to Dynamic Tree
+ *  	@see https://adempiere.atlassian.net/browse/ADEMPIERE-393
  *  @version $Id: MTable.java,v 1.3 2006/07/30 00:58:04 jjanke Exp $
- *  @author<a href="mailto:yamelsenih@gmail.com">Yamel Senih</a>
- *  		<li> Add Support to Dynamic Tree 2013/07/02 16:42:57
  */
 public class MTable extends X_AD_Table
 {
@@ -92,7 +94,7 @@ public class MTable extends X_AD_Table
 	 *	@param tableName case insensitive table name
 	 *	@return Table
 	 */
-	public static MTable get (Properties ctx, String tableName)
+    public static MTable get (Properties ctx, String tableName)
 	{
 		if (tableName == null)
 			return null;
@@ -179,7 +181,7 @@ public class MTable extends X_AD_Table
 	private static final String[]	s_special = new String[] {
 		"AD_Element", "org.compiere.model.M_Element",
 		"AD_Registration", "org.compiere.model.M_Registration",
-		//	Yamel Senih 2013/07/03 21:59:08 Change Model Class "AD_Tree", "org.compiere.model.MTree_Base",
+		//	Yamel Senih, FR[ 9223372036854775807 ]
 		//	"AD_Tree", "org.compiere.model.MTree_Base",
 		"AD_Tree", "org.compiere.model.MTree",
 		//	End Yamel Senih
@@ -738,7 +740,7 @@ public class MTable extends X_AD_Table
 			else if (!seq.getName().equals(getTableName()))
 			{
 				seq.setName(getTableName());
-				seq.save();
+				seq.saveEx();
 			}
 		}	
 		
@@ -827,7 +829,8 @@ public class MTable extends X_AD_Table
 			retValue = -1;
 		}
 		return retValue;
-	}
+	}		int retValue = 0;
+
 	
 	/**
 	 * Create query to retrieve one or more PO.
@@ -863,10 +866,10 @@ public class MTable extends X_AD_Table
 		column.saveEx();		
 		column = new MColumn(this, COLUMNNAME_Updated	, 7 , DisplayType.DateTime , "");
 		column.saveEx();
-		column = new MColumn(this, COLUMNNAME_CreatedBy	, 22 , DisplayType.TableDir, "");
+		column = new MColumn(this, COLUMNNAME_CreatedBy	, 22 , DisplayType.Table, "");
 		column.setAD_Reference_Value_ID(110);
 		column.saveEx();
-		column = new MColumn(this, COLUMNNAME_UpdatedBy	, 22 , DisplayType.TableDir, "");
+		column = new MColumn(this, COLUMNNAME_UpdatedBy	, 22 , DisplayType.Table, "");
 		column.setAD_Reference_Value_ID(110);
 		column.saveEx();
 		if(!isView())

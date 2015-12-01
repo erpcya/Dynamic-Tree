@@ -30,8 +30,9 @@ import org.compiere.util.CCache;
  * 
  * @author Teo Sarca, www.arhipac.ro
  * 			<li>FR [ 2736867 ] Add caching support to MActivity
- * @author<a href="mailto:yamelsenih@gmail.com">Yamel Senih</a>
- *  		<li> Add Support to Dynamic Tree 2013/07/02 16:42:57
+ * @author Yamel Senih, ysenih@erpcya.com, ERPCyA http://www.erpcya.com
+ *  		<li>FR [ 9223372036854775807 ] Add Support to Dynamic Tree
+ *  		@see https://adempiere.atlassian.net/browse/ADEMPIERE-393
  */
 public class MActivity extends X_C_Activity
 {
@@ -109,7 +110,7 @@ public class MActivity extends X_C_Activity
 	{
 		if (!success)
 			return success;
-		//	Yamel Senih
+		//	Yamel Senih, FR[ 9223372036854775807 ]
 		//if (newRecord)
 			//insert_Tree(MTree_Base.TREETYPE_Activity);
 		//	End Yamel Senih
@@ -124,7 +125,7 @@ public class MActivity extends X_C_Activity
 	 *	@param success
 	 *	@return deleted
 	 */
-	//	Yamel Senih
+	//	Yamel Senih, FR[ 9223372036854775807 ]
 	//protected boolean afterDelete (boolean success)
 	//{
 		//if (success)

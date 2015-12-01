@@ -21,6 +21,7 @@ import org.compiere.model.MTree;
 import org.compiere.model.MTreeNode;
 import org.compiere.util.CLogger;
 import org.compiere.util.Env;
+import org.compiere.util.Msg;
 import org.zkoss.lang.Objects;
 import org.zkoss.zk.ui.event.Event;
 import org.zkoss.zk.ui.event.EventListener;
@@ -38,8 +39,11 @@ import org.zkoss.zul.event.TreeDataEvent;
 /**
  * 
  * @author Low Heng Sin
- * @author	<a href="mailto:yamelsenih@gmail.com">Yamel Senih</a>
- *  			<li> Add Support to Dynamic Tree 2013/07/02 16:42:57
+ * 
+ * @author Yamel Senih, ysenih@erpcya.com, ERPCyA http://www.erpcya.com
+ *  	<li>FR [ 9223372036854775807 ] Add Support to Dynamic Tree
+ *  	@see http://adempiere.atlassian.net/browse/ADEMPIERE-393
+ *
  */
 public class SimpleTreeModel extends org.zkoss.zul.SimpleTreeModel implements TreeitemRenderer, EventListener {
 
@@ -58,12 +62,9 @@ public class SimpleTreeModel extends org.zkoss.zul.SimpleTreeModel implements Tr
 	}
 	
 	/**
-	 * Old Constructor
-	 * @author <a href="mailto:yamelsenih@gmail.com">Yamel Senih</a> 18/03/2014, 21:23:12
-	 * @param tree
+	 * @param tree FR[ 9223372036854775807 ]
 	 * @param AD_Tree_ID
 	 * @param windowNo
-	 * @return
 	 * @return SimpleTreeModel
 	 */
 	public static SimpleTreeModel initADTree(Tree tree, int AD_Tree_ID, int windowNo) {
@@ -71,7 +72,7 @@ public class SimpleTreeModel extends org.zkoss.zul.SimpleTreeModel implements Tr
 	}
 	
 	/**
-	 * @param tree
+	 * @param tree FR[ 9223372036854775807 ]
 	 * @param AD_Tree_ID
 	 * @param windowNo
 	 * @return SimpleTreeModel
@@ -82,16 +83,20 @@ public class SimpleTreeModel extends org.zkoss.zul.SimpleTreeModel implements Tr
 	}
 	
 	/**
-	 * @param tree
+	 * @param tree FR[ 9223372036854775807 ]
 	 * @param AD_Tree_ID
 	 * @param windowNo
 	 * @param editable
+	 * @param whereClause
 	 * @param trxName
 	 * @return SimpleTreeModel
 	 */
 	public static SimpleTreeModel initADTree(Tree tree, int AD_Tree_ID, int windowNo, boolean editable, String whereClause, String trxName) { 
 		MTree vTree = new MTree (Env.getCtx(), AD_Tree_ID, editable, true, whereClause, trxName);
 		MTreeNode root = vTree.getRoot();
+		//  Raul Muñoz 20/02/2015, 14:36
+		//  translate name of menu.
+		root.setName(Msg.getMsg(Env.getCtx(), vTree.getName() ));
 		SimpleTreeModel treeModel = SimpleTreeModel.createFrom(root);
 		treeModel.setItemDraggable(true);
 		treeModel.addOnDropEventListener(new ADTreeOnDropListener(tree, treeModel, vTree, windowNo));
@@ -285,8 +290,18 @@ public class SimpleTreeModel extends org.zkoss.zul.SimpleTreeModel implements Tr
 		MTreeNode data = (MTreeNode) fromNode.getData();
 		if (data.getNode_ID() == recordId) 
 			return fromNode;
-		if (isLeaf(fromNode)) 
+
+		// If the MTree model and the tree model aren't in sync, the data 
+		// could include a new node that hasn't been initialized (node_id == -1).  
+		// This will have no children causing a NPE error in isLeaf().
+		try {
+			if (isLeaf(fromNode)) 
+				return null;
+		} catch (NullPointerException e) {
+			logger.severe("Uninitialized node exists in tree. Node ID: " + data.getNode_ID());
 			return null;
+		}
+				
 		int cnt = getChildCount(fromNode);
 		for(int i = 0; i < cnt; i++ ) {
 			SimpleTreeNode child = getChild(fromNode, i);

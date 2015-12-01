@@ -54,13 +54,16 @@ import org.compiere.util.Trace;
  *  @contributor KittiU - FR [ 3062553 ] - Duplicated action in DocAction list for Multiple Role Users
  *  @author victor.perez@e-evoluton.com, www.e-evolution.com
  *  	<li>FR [ 3426137 ] Smart Browser
- * 		https://sourceforge.net/tracker/?func=detail&aid=3426137&group_id=176962&atid=879335 
+ * 		https://sourceforge.net/tracker/?func=detail&aid=3426137&group_id=176962&atid=879335
+ * 
+ *  @author Yamel Senih, ysenih@erpcya.com, ERPCyA http://www.erpcya.com
+ *  	<li>FR [ 9223372036854775807 ] Add Support to Dynamic Tree
+ *  	@see https://adempiere.atlassian.net/browse/ADEMPIERE-393
  *  @version $Id: MRole.java,v 1.5 2006/08/09 16:38:47 jjanke Exp $
- *  @author<a href="mailto:yamelsenih@gmail.com">Yamel Senih</a>
- *  		<li> Add Support to Dynamic Tree 2013/07/02 16:42:57
  */
 public final class MRole extends X_AD_Role
 {
+
 	/**
 	 * 
 	 */
@@ -370,12 +373,12 @@ public final class MRole extends X_AD_Role
 		{
 			//	Add Role to SuperUser
 			MUserRoles su = new MUserRoles(getCtx(), SUPERUSER_USER_ID, getAD_Role_ID(), get_TrxName());
-			su.save();
+			su.saveEx();
 			//	Add Role to User
 			if (getCreatedBy() != SUPERUSER_USER_ID)
 			{
 				MUserRoles ur = new MUserRoles(getCtx(), getCreatedBy(), getAD_Role_ID(), get_TrxName());
-				ur.save();
+				ur.saveEx();
 			}
 			updateAccessRecords();
 		}
@@ -402,7 +405,6 @@ public final class MRole extends X_AD_Role
 		}
 		return success;
 	} 	//	afterDelete
-
 
 	/**
 	 * 	Create Access Records
@@ -532,7 +534,6 @@ public final class MRole extends X_AD_Role
 			+ " -  @AD_Browse_ID@ #"+ browse
 			+ " -  @AD_Workflow_ID@ #" + wf
 			+ " -  @DocAction@ #" + docact;
-		
 	}	//	createAccessRecords
 
 	/**
@@ -688,6 +689,7 @@ public final class MRole extends X_AD_Role
 			m_formAccess = null;
 			m_browseAccess = null;
 		}
+
 		loadIncludedRoles(reload); // Load/Reload included roles - metas-2009_0021_AP1_G94
 	}	//	loadAccess
 
@@ -803,7 +805,8 @@ public final class MRole extends X_AD_Role
 		if (!org.isSummary())
 			return;
 		//	Summary Org - Get Dependents
-		//	Yamel Senih, change MTree_Base for MTree
+		//	Yamel Senih, FR[ 9223372036854775807 ]
+		//MTree_Base tree = MTree_Base.get(getCtx(), getAD_Tree_Org_ID(), get_TrxName());
 		MTree tree = MTree.get(getCtx(), getAD_Tree_Org_ID(), get_TrxName());
 		String sql =  "SELECT AD_Client_ID, AD_Org_ID FROM AD_Org "
 			+ "WHERE IsActive='Y' AND AD_Org_ID IN (SELECT Node_ID FROM "
@@ -1266,6 +1269,7 @@ public final class MRole extends X_AD_Role
 	 */
 	public boolean isTableAccess (int AD_Table_ID, boolean ro)
 	{
+	
 		if (!isTableAccessLevel (AD_Table_ID, ro))	//	Role Based Access
 			return false;
 		loadTableAccess(false);
@@ -1273,44 +1277,44 @@ public final class MRole extends X_AD_Role
 		boolean hasAccess = true;	//	assuming exclusive rule
 		for (int i = 0; i < m_tableAccess.length; i++)
 		{
+			if (m_tableAccess[i].getAD_Table_ID() != AD_Table_ID)
+				continue;
+		
 			if (!X_AD_Table_Access.ACCESSTYPERULE_Accessing.equals(m_tableAccess[i].getAccessTypeRule()))
 				continue;
+		
 			if (m_tableAccess[i].isExclude())		//	Exclude
 			//	If you Exclude Access to a table and select Read Only, 
 			//	you can only read data (otherwise no access).
 			{
-				if (m_tableAccess[i].getAD_Table_ID() == AD_Table_ID)
-				{
-					if (ro)
-						hasAccess = m_tableAccess[i].isReadOnly();
-					else
-						hasAccess = false;
-					log.fine("Exclude AD_Table_ID=" + AD_Table_ID 
-						+ " (ro="  + ro + ",TableAccessRO=" + m_tableAccess[i].isReadOnly() + ") = " + hasAccess);
-					return hasAccess;
-				}
+				if (ro)
+					hasAccess = m_tableAccess[i].isReadOnly();
+				else
+					hasAccess = false;
+				log.fine("Exclude AD_Table_ID=" + AD_Table_ID 
+					+ " (ro="  + ro + ",TableAccessRO=" + m_tableAccess[i].isReadOnly() + ") = " + hasAccess);
+				return hasAccess;
+			
 			}
 			else								//	Include
 			//	If you Include Access to a table and select Read Only, 
 			//	you can only read data (otherwise full access).
 			{
-				hasAccess = false;
-				if (m_tableAccess[i].getAD_Table_ID() == AD_Table_ID)
-				{
-					if (!ro)	//	rw only if not r/o
-						hasAccess = !m_tableAccess[i].isReadOnly();
-					else
-						hasAccess = true;
-					log.fine("Include AD_Table_ID=" + AD_Table_ID 
-						+ " (ro="  + ro + ",TableAccessRO=" + m_tableAccess[i].isReadOnly() + ") = " + hasAccess);
-					return hasAccess;
-				}
+				if (!ro)	//	rw only if not r/o
+					hasAccess = !m_tableAccess[i].isReadOnly();
+				else
+					hasAccess = true;
+				log.fine("Include AD_Table_ID=" + AD_Table_ID 
+					+ " (ro="  + ro + ",TableAccessRO=" + m_tableAccess[i].isReadOnly() + ") = " + hasAccess);
+				return hasAccess;
+			
 			}
 		}	//	for all Table Access
 		if (!hasAccess)
 			log.fine("AD_Table_ID=" + AD_Table_ID 
 				+ "(ro="  + ro + ") = " + hasAccess);
 		return hasAccess;
+	
 	}	//	isTableAccess
 
 	/**
@@ -1558,8 +1562,13 @@ public final class MRole extends X_AD_Role
 	 *	@param AD_Process_ID process
 	 *	@return null in no access, TRUE if r/w and FALSE if r/o
 	 */
-	public Boolean getProcessAccess (int AD_Process_ID)
-	{
+	public Boolean getProcessAccess (int AD_Process_ID) {
+		Boolean access = checkProcessAccess(AD_Process_ID);
+		//Services.get(IRolePermLoggingBL.class).logProcessAccess(get_ID(), AD_Process_ID, access);
+		return access;
+	}
+	
+	public Boolean checkProcessAccess (int AD_Process_ID) {
 		if (m_processAccess == null)
 		{
 			m_processAccess = new HashMap<Integer,Boolean>(50);
@@ -2025,7 +2034,7 @@ public final class MRole extends X_AD_Role
 			if (getIdColumnName(TableName) == null) continue;
 			keyColumnName += getIdColumnName(TableName); 
 	
-			log.fine("addAccessSQL - " + TableName + "(" + AD_Table_ID + ") " + keyColumnName);
+			//log.fine("addAccessSQL - " + TableName + "(" + AD_Table_ID + ") " + keyColumnName);
 			String recordWhere = getRecordWhere (AD_Table_ID, keyColumnName, rw);
 			if (recordWhere.length() > 0)
 			{

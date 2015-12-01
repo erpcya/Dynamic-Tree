@@ -42,17 +42,35 @@ import org.compiere.util.Env;
  *  @author     Jorg Janke
  *  @author victor.perez@e-evoluton.com, www.e-evolution.com
  *  	<li>FR [ 3426137 ] Smart Browser
- * 		https://sourceforge.net/tracker/?func=detail&aid=3426137&group_id=176962&atid=879335 
+ * 		https://sourceforge.net/tracker/?func=detail&aid=3426137&group_id=176962&atid=879335
+ * 	@author Yamel Senih, ysenih@erpcya.com, ERPCyA http://www.erpcya.com
+ *  	<li>FR [ 9223372036854775807 ] Add Support to Dynamic Tree
+ *  	@see http://adempiere.atlassian.net/browse/ADEMPIERE-393 
  *  @version    $Id: MTree.java,v 1.2 2006/07/30 00:51:02 jjanke Exp $
- *  @author<a href="mailto:yamelsenih@gmail.com">Yamel Senih</a>
- *  		<li> Add Support to Dynamic Tree 2013/07/02 16:42:57
  */
-public class MTree extends X_AD_Tree {
+public class MTree extends X_AD_Tree
+{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -6412057411585787707L;
+
+
+	/**
+	 *  Default Constructor.
+	 * 	Need to call loadNodes explicitly
+	 * 	@param ctx context for security
+	 *  @param AD_Tree_ID   The tree to build
+	 *  @param trxName transaction
+	 */
+	//	FR[ 9223372036854775807 ]
+//	public MTree (Properties ctx, int AD_Tree_ID, String trxName)
+//	{
+//		super (ctx, AD_Tree_ID, trxName);
+//	}   //  MTree
 	
 	/**
-	 * Set Contructor with ResultSet
-	 * *** Constructor ***
-	 * @author <a href="mailto:carlosaparadam@gmail.com">Carlos Parada</a> 21/10/2014, 00:48:29
+	 * Default Constructor for ResultSet
 	 * @param ctx
 	 * @param rs
 	 * @param trxName
@@ -61,12 +79,7 @@ public class MTree extends X_AD_Tree {
     {
       super (ctx, rs, trxName);
     }
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -6412057411585787707L;
 
-	
 	/**
 	 *  Construct & Load Tree
 	 *  @param AD_Tree_ID   The tree to build
@@ -79,25 +92,33 @@ public class MTree extends X_AD_Tree {
 	public MTree (Properties ctx, int AD_Tree_ID, 
 		boolean editable, boolean clientTree, String trxName)
 	{
-		this (ctx, AD_Tree_ID, editable, clientTree, false, null, trxName);
+		this (ctx, AD_Tree_ID, editable, clientTree, false, trxName);
 	}   //  MTree
-	
+
 	/**
-	 *  Construct & Load Tree
-	 *  @param AD_Tree_ID   The tree to build
-	 *  @param editable     True, if tree can be modified
-	 *  - includes inactive and empty summary nodes
-	 * 	@param ctx context for security
-	 *	@param clientTree the tree is displayed on the java client (not on web)
-	 *	@param whereClause
-	 *  @param trxName transaction
+	 * Constructor Load Tree FR[ 9223372036854775807 ]
+	 * @param ctx
+	 * @param AD_Tree_ID
+	 * @param editable
+	 * @param clientTree
+	 * @param whereClause
+	 * @param trxName
 	 */
 	public MTree (Properties ctx, int AD_Tree_ID, 
 			boolean editable, boolean clientTree, String whereClause, String trxName)
 	{
 		this (ctx, AD_Tree_ID, editable, clientTree, false, whereClause, trxName);
 	}   //  MTree
-
+	
+	/**
+	 * Constructor without where clause
+	 * @param ctx
+	 * @param AD_Tree_ID
+	 * @param editable
+	 * @param clientTree
+	 * @param allNodes
+	 * @param trxName
+	 */
 	public MTree (Properties ctx, int AD_Tree_ID, 
 			boolean editable, boolean clientTree, boolean allNodes, String trxName)
 	{
@@ -113,10 +134,21 @@ public class MTree extends X_AD_Tree {
 				+ ", AD_User_ID=" + AD_User_ID 
 				+ ", Editable=" + editable
 				+ ", OnClient=" + clientTree);
-		//
+		//	Yamel Senih FR[ 9223372036854775807 ]
 		loadNodes(AD_User_ID, null);
+		//	End Yamel Senih
 	}   //  MTree
 	
+	/**
+	 * Constructor with here clause for tab
+	 * @param ctx
+	 * @param AD_Tree_ID
+	 * @param editable
+	 * @param clientTree
+	 * @param allNodes
+	 * @param whereClause
+	 * @param trxName
+	 */
 	public MTree (Properties ctx, int AD_Tree_ID, 
 			boolean editable, boolean clientTree, boolean allNodes, String whereClause, String trxName)
 	{
@@ -132,15 +164,11 @@ public class MTree extends X_AD_Tree {
 				+ ", AD_User_ID=" + AD_User_ID 
 				+ ", Editable=" + editable
 				+ ", OnClient=" + clientTree);
-		//	Yamel Senih 2014-03-18, 20:34:45
+		//	Yamel Senih FR[ 9223372036854775807 ]
 		loadNodes(AD_User_ID, whereClause);
 		//	End Yamel Senih
 	}   //  MTree
-
-
-	//	Dixon Martinez
-	//	20/08/2014
-	//	Add support to create tree of process create client
+	
 	/**
 	 * 	Parent Constructor
 	 *	@param client client
@@ -157,10 +185,8 @@ public class MTree extends X_AD_Tree {
 	}	//	MTree_Base
 
 	/**
-	 * Set Table ID of type tree
-	 * @author <a href="mailto:dixon.22martinez@gmail.com">Dixon Martinez</a> 20/08/2014, 22:40:26
+	 * Set From Tree Type FR[ 9223372036854775807 ]
 	 * @param treeType
-	 * @return void
 	 */
 	private void setTable_ID(String treeType) {
 		int table_ID = 0;
@@ -193,7 +219,6 @@ public class MTree extends X_AD_Tree {
 		
 	}
 
-	//	End Dixon Martinez
 
 	/** Is Tree editable    	*/
 	private boolean     		m_editable = false;
@@ -219,73 +244,80 @@ public class MTree extends X_AD_Tree {
 	 *  @param AD_Client_ID client
 	 *  @return AD_Tree_ID
 	 */
-	//	Yamel Senih, Old method
-	/*public static int getDefaultAD_Tree_ID (int AD_Client_ID, String keyColumnName)
-	{
-		s_log.config(keyColumnName);
-		if (keyColumnName == null || keyColumnName.length() == 0)
-			return 0;
+	//	Yamel Senih, Old method  FR[ 9223372036854775807 ]
+//	public static int getDefaultAD_Tree_ID (int AD_Client_ID, String keyColumnName)
+//	{
+//		s_log.config(keyColumnName);
+//		if (keyColumnName == null || keyColumnName.length() == 0)
+//			return 0;
+//
+//		String TreeType = null;
+//		if (keyColumnName.equals("AD_Menu_ID"))
+//			TreeType = TREETYPE_Menu; 
+//		else if (keyColumnName.equals("C_ElementValue_ID"))
+//			TreeType = TREETYPE_ElementValue;
+//		else if (keyColumnName.equals("M_Product_ID"))
+//			TreeType = TREETYPE_Product;
+//		else if (keyColumnName.equals("C_BPartner_ID"))
+//			TreeType = TREETYPE_BPartner;
+//		else if (keyColumnName.equals("AD_Org_ID"))
+//			TreeType = TREETYPE_Organization;
+//		else if (keyColumnName.equals("C_Project_ID"))
+//			TreeType = TREETYPE_Project;
+//		else if (keyColumnName.equals("M_ProductCategory_ID"))
+//			TreeType = TREETYPE_ProductCategory;
+//		else if (keyColumnName.equals("M_BOM_ID"))
+//			TreeType = TREETYPE_BoM;
+//		else if (keyColumnName.equals("C_SalesRegion_ID"))
+//			TreeType = TREETYPE_SalesRegion;
+//		else if (keyColumnName.equals("C_Campaign_ID"))
+//			TreeType = TREETYPE_Campaign;
+//		else if (keyColumnName.equals("C_Activity_ID"))
+//			TreeType = TREETYPE_Activity;
+//		//
+//		else if (keyColumnName.equals("CM_CStage_ID"))
+//			TreeType = TREETYPE_CMContainerStage;
+//		else if (keyColumnName.equals("CM_Container_ID"))
+//			TreeType = TREETYPE_CMContainer;
+//		else if (keyColumnName.equals("CM_Media_ID"))
+//			TreeType = TREETYPE_CMMedia;
+//		else if (keyColumnName.equals("CM_Template_ID"))
+//			TreeType = TREETYPE_CMTemplate;
+//		else
+//		{
+//			s_log.log(Level.SEVERE, "Could not map " + keyColumnName);
+//			return 0;
+//		}
+//
+//		int AD_Tree_ID = 0;
+//		String sql = "SELECT AD_Tree_ID, Name FROM AD_Tree "
+//			+ "WHERE AD_Client_ID=? AND TreeType=? AND IsActive='Y' AND IsAllNodes='Y' "
+//			+ "ORDER BY IsDefault DESC, AD_Tree_ID";
+//		try
+//		{
+//			PreparedStatement pstmt = DB.prepareStatement(sql, null);
+//			pstmt.setInt(1, AD_Client_ID);
+//			pstmt.setString(2, TreeType);
+//			ResultSet rs = pstmt.executeQuery();
+//			if (rs.next())
+//				AD_Tree_ID = rs.getInt(1);
+//			rs.close();
+//			pstmt.close();
+//		}
+//		catch (SQLException e)
+//		{
+//			s_log.log(Level.SEVERE, sql, e);
+//		}
+//
+//		return AD_Tree_ID;
+//	}   //  getDefaultAD_Tree_ID
 
-		String TreeType = null;
-		if (keyColumnName.equals("AD_Menu_ID"))
-			TreeType = TREETYPE_Menu; 
-		else if (keyColumnName.equals("C_ElementValue_ID"))
-			TreeType = TREETYPE_ElementValue;
-		else if (keyColumnName.equals("M_Product_ID"))
-			TreeType = TREETYPE_Product;
-		else if (keyColumnName.equals("C_BPartner_ID"))
-			TreeType = TREETYPE_BPartner;
-		else if (keyColumnName.equals("AD_Org_ID"))
-			TreeType = TREETYPE_Organization;
-		else if (keyColumnName.equals("C_Project_ID"))
-			TreeType = TREETYPE_Project;
-		else if (keyColumnName.equals("M_ProductCategory_ID"))
-			TreeType = TREETYPE_ProductCategory;
-		else if (keyColumnName.equals("M_BOM_ID"))
-			TreeType = TREETYPE_BoM;
-		else if (keyColumnName.equals("C_SalesRegion_ID"))
-			TreeType = TREETYPE_SalesRegion;
-		else if (keyColumnName.equals("C_Campaign_ID"))
-			TreeType = TREETYPE_Campaign;
-		else if (keyColumnName.equals("C_Activity_ID"))
-			TreeType = TREETYPE_Activity;
-		//
-		else if (keyColumnName.equals("CM_CStage_ID"))
-			TreeType = TREETYPE_CMContainerStage;
-		else if (keyColumnName.equals("CM_Container_ID"))
-			TreeType = TREETYPE_CMContainer;
-		else if (keyColumnName.equals("CM_Media_ID"))
-			TreeType = TREETYPE_CMMedia;
-		else if (keyColumnName.equals("CM_Template_ID"))
-			TreeType = TREETYPE_CMTemplate;
-		else
-		{
-			s_log.log(Level.SEVERE, "Could not map " + keyColumnName);
-			return 0;
-		}
-
-		int AD_Tree_ID = 0;
-		String sql = "SELECT AD_Tree_ID, Name FROM AD_Tree "
-			+ "WHERE AD_Client_ID=? AND TreeType=? AND IsActive='Y' AND IsAllNodes='Y' "
-			+ "ORDER BY IsDefault DESC, AD_Tree_ID";
-		try
-		{
-			PreparedStatement pstmt = DB.prepareStatement(sql, null);
-			pstmt.setInt(1, AD_Client_ID);
-			pstmt.setString(2, TreeType);
-			ResultSet rs = pstmt.executeQuery();
-			if (rs.next())
-				AD_Tree_ID = rs.getInt(1);
-			rs.close();
-			pstmt.close();
-		}
-		catch (SQLException e)
-		{
-			s_log.log(Level.SEVERE, sql, e);
-		}
-
-		return AD_Tree_ID;
-	}   //  getDefaultAD_Tree_ID*/
+	/**
+	 * For Get Default Tree for table Name
+	 * @param AD_Client_ID
+	 * @param tableName
+	 * @return
+	 */
 	public static int getDefaultAD_Tree_ID (int AD_Client_ID, String tableName)
 	{
 		s_log.finer("TableName=" + tableName);
@@ -296,12 +328,14 @@ public class MTree extends X_AD_Tree {
 			+ "FROM AD_Tree tr INNER JOIN AD_Table tb ON (tr.AD_Table_ID=tb.AD_Table_ID) "
 			+ "WHERE tr.AD_Client_ID=? AND tb.TableName=? AND tr.IsActive='Y' AND tr.IsAllNodes='Y' "
 			+ "ORDER BY tr.IsDefault DESC, tr.AD_Tree_ID";
+		ResultSet rs = null;
+		PreparedStatement pstmt = null;
 		try
 		{
-			PreparedStatement pstmt = DB.prepareStatement(sql, null);
+			pstmt = DB.prepareStatement(sql, null);
 			pstmt.setInt(1, AD_Client_ID);
 			pstmt.setString(2, tableName);
-			ResultSet rs = pstmt.executeQuery();
+			rs = pstmt.executeQuery();
 			if (rs.next())
 				AD_Tree_ID = rs.getInt(1);
 			rs.close();
@@ -310,17 +344,18 @@ public class MTree extends X_AD_Tree {
 		catch (SQLException e)
 		{
 			s_log.log(Level.SEVERE, sql, e);
+		} finally {
+			DB.close(rs, pstmt);
 		}
-
+		//	Return
 		return AD_Tree_ID;
 	}   //  getDefaultAD_Tree_ID
 	
-	/**************************************************************************
-	 *  Get default (oldest) complete AD_Tree_ID for KeyColumn.
-	 *  Called from GridController
-	 *  @param AD_Client_ID client
-	 *  @param AD_Table_ID table
-	 *  @return AD_Tree_ID or 0
+	/**
+	 * For Table ID
+	 * @param AD_Client_ID
+	 * @param AD_Table_ID
+	 * @return
 	 */
 	public static int getDefaultAD_Tree_ID (int AD_Client_ID, int AD_Table_ID)
 	{
@@ -331,12 +366,14 @@ public class MTree extends X_AD_Tree {
 		String sql = "SELECT AD_Tree_ID, Name FROM AD_Tree "
 			+ "WHERE AD_Client_ID IN(?, 0) AND AD_Table_ID=? AND IsActive='Y' AND IsAllNodes='Y' "
 			+ "ORDER BY AD_Client_ID DESC, IsDefault DESC, AD_Tree_ID";
+		ResultSet rs = null;
+		PreparedStatement pstmt = null;
 		try
 		{
-			PreparedStatement pstmt = DB.prepareStatement(sql, null);
+			pstmt = DB.prepareStatement(sql, null);
 			pstmt.setInt(1, AD_Client_ID);
 			pstmt.setInt(2, AD_Table_ID);
-			ResultSet rs = pstmt.executeQuery();
+			rs = pstmt.executeQuery();
 			if (rs.next())
 				AD_Tree_ID = rs.getInt(1);
 			rs.close();
@@ -345,22 +382,124 @@ public class MTree extends X_AD_Tree {
 		catch (SQLException e)
 		{
 			s_log.log(Level.SEVERE, sql, e);
+		} finally {
+			DB.close(rs, pstmt);
 		}
-
+		//	Return
 		return AD_Tree_ID;
-	}   //  getDefaultAD_Tree_ID	
-	
-	//	End Yamel Senih
-
+	}   //  getDefaultAD_Tree_ID
 
 	/*************************************************************************
 	 *  Load Nodes and Bar
 	 * 	@param AD_User_ID user for tree bar
-	 * 	@param WhereClass
 	 */
+	//	Yamel Senih, FR[ 9223372036854775807 ]
+//	private void loadNodes (int AD_User_ID)
+//	{
+//		//  SQL for TreeNodes
+//		StringBuffer sql = new StringBuffer("SELECT "
+//			+ "tn.Node_ID,tn.Parent_ID,tn.SeqNo,tb.IsActive "
+//			+ "FROM ").append(getNodeTableName()).append(" tn"
+//			+ " LEFT OUTER JOIN AD_TreeBar tb ON (tn.AD_Tree_ID=tb.AD_Tree_ID"
+//			+ " AND tn.Node_ID=tb.Node_ID "
+//			+ (AD_User_ID != -1 ? " AND tb.AD_User_ID=? ": "") 	//	#1 (conditional)
+//			+ ") "
+//			+ "WHERE tn.AD_Tree_ID=?");								//	#2
+//		if (!m_editable)
+//			sql.append(" AND tn.IsActive='Y'");
+//		sql.append(" ORDER BY COALESCE(tn.Parent_ID, -1), tn.SeqNo");
+//		log.finest(sql.toString());
+//
+//		//  The Node Loop
+//		try
+//		{
+//			// load Node details - addToTree -> getNodeDetail
+//			getNodeDetails(); 
+//			//
+//			PreparedStatement pstmt = DB.prepareStatement(sql.toString(), get_TrxName());
+//			int idx = 1;
+//			if (AD_User_ID != -1)
+//				pstmt.setInt(idx++, AD_User_ID);
+//			pstmt.setInt(idx++, getAD_Tree_ID());
+//			//	Get Tree & Bar
+//			ResultSet rs = pstmt.executeQuery();
+//			m_root = new MTreeNode (0, 0, getName(), getDescription(), 0, true, null, false, null);
+//			while (rs.next())
+//			{
+//				int node_ID = rs.getInt(1);
+//				int parent_ID = rs.getInt(2);
+//				int seqNo = rs.getInt(3);
+//				boolean onBar = (rs.getString(4) != null);
+//				//
+//				if (node_ID == 0 && parent_ID == 0)
+//					;
+//				else
+//					addToTree (node_ID, parent_ID, seqNo, onBar);	//	calls getNodeDetail
+//			}
+//			rs.close();
+//			pstmt.close();
+//			//
+//			//closing the rowset will also close connection for oracle rowset implementation
+//			//m_nodeRowSet.close();
+//			m_nodeRowSet = null;
+//			m_nodeIdMap = null;
+//		}
+//		catch (SQLException e)
+//		{
+//			log.log(Level.SEVERE, sql.toString(), e);
+//			m_nodeRowSet = null;
+//			m_nodeIdMap = null;
+//		}
+//			
+//		//  Done with loading - add remainder from buffer
+//		if (m_buffer.size() != 0)
+//		{
+//			log.finest("clearing buffer - Adding to: " + m_root);
+//			for (int i = 0; i < m_buffer.size(); i++)
+//			{
+//				MTreeNode node = (MTreeNode)m_buffer.get(i);
+//				MTreeNode parent = m_root.findNode(node.getParent_ID());
+//				if (parent != null && parent.getAllowsChildren())
+//				{
+//					parent.add(node);
+//					int sizeBeforeCheckBuffer = m_buffer.size();
+//					checkBuffer(node);
+//					if (sizeBeforeCheckBuffer == m_buffer.size())
+//						m_buffer.remove(i);
+//					i = -1;		//	start again with i=0
+//				}
+//			}
+//		}
+//
+//		//	Nodes w/o parent
+//		if (m_buffer.size() != 0)
+//		{
+//			log.severe ("Nodes w/o parent - adding to root - " + m_buffer);
+//			for (int i = 0; i < m_buffer.size(); i++)
+//			{
+//				MTreeNode node = (MTreeNode)m_buffer.get(i);
+//				m_root.add(node);
+//				int sizeBeforeCheckBuffer = m_buffer.size();
+//				checkBuffer(node);
+//				if (sizeBeforeCheckBuffer == m_buffer.size())
+//					m_buffer.remove(i);
+//				i = -1;
+//			}
+//			if (m_buffer.size() != 0)
+//				log.severe ("Still nodes in Buffer - " + m_buffer);
+//		}	//	nodes w/o parents
+//
+//		//  clean up
+//		if (!m_editable && m_root.getChildCount() > 0)
+//			trimTree();
+////		diagPrintTree();
+//		if (CLogMgt.isLevelFinest() || m_root.getChildCount() == 0)
+//			log.fine("ChildCount=" + m_root.getChildCount());
+//	}   //  loadNodes
+
 	private void loadNodes (int AD_User_ID, String whereClause)
 	{
-		//	Yamel Senih 2014-03-18, 20:19:06
+		//	Yamel Senih  FR[ 9223372036854775807 ]
 		//	Add Where Clause
 		//	Old Code
 		//StringBuffer sql = new StringBuffer("SELECT "
@@ -484,7 +623,7 @@ public class MTree extends X_AD_Tree {
 		if (CLogMgt.isLevelFinest() || m_root.getChildCount() == 0)
 			log.fine("ChildCount=" + m_root.getChildCount());
 	}   //  loadNodes
-
+	
 	/**
 	 *  Add Node to Tree.
 	 *  If not found add to buffer
@@ -616,7 +755,7 @@ public class MTree extends X_AD_Tree {
 				sqlNode.append(" IS NOT NULL))");
 			}
 		}
-		//	Dixon Martinez 2015-01-09 
+		//	Yamel Senih FR[ 9223372036854775807 ]
 		//	Add support for custom translate trees
 		else if (getTreeType().equals(TREETYPE_CustomTree))
 		{
@@ -654,33 +793,8 @@ public class MTree extends X_AD_Tree {
 				boolean hasWhere = sqlNode.indexOf(" WHERE ") != -1;
 				sqlNode.append(hasWhere ? " AND " : " WHERE ").append("t.IsActive='Y' ");
 			}
-			/*
-			//	Do not show Beta
-			if (!MClient.get(getCtx()).isUseBetaFunctions())
-			{
-				boolean hasWhere = sqlNode.indexOf(" WHERE ") != -1;
-				sqlNode.append(hasWhere ? " AND " : " WHERE ");
-				sqlNode.append("(m.AD_Window_ID IS NULL OR EXISTS (SELECT * FROM AD_Window w WHERE m.AD_Window_ID=w.AD_Window_ID AND w.IsBetaFunctionality='N'))")
-					.append(" AND (m.AD_Process_ID IS NULL OR EXISTS (SELECT * FROM AD_Process p WHERE m.AD_Process_ID=p.AD_Process_ID AND p.IsBetaFunctionality='N'))")
-					.append(" AND (m.AD_Workflow_ID IS NULL OR EXISTS (SELECT * FROM AD_Workflow wf WHERE m.AD_Workflow_ID=wf.AD_Workflow_ID AND wf.IsBetaFunctionality='N'))")
-					.append(" AND (m.AD_Form_ID IS NULL OR EXISTS (SELECT * FROM AD_Form f WHERE m.AD_Form_ID=f.AD_Form_ID AND f.IsBetaFunctionality='N'))")
-					.append(" AND (m.AD_Browse_ID IS NULL OR EXISTS (SELECT * FROM AD_Browse b WHERE m.AD_Browse_ID=b.AD_Browse_ID AND b.IsBetaFunctionality='N'))");
-			}
-			//	In R/O Menu - Show only defined Forms
-			if (!m_editable)
-			{
-				boolean hasWhere = sqlNode.indexOf(" WHERE ") != -1;
-				sqlNode.append(hasWhere ? " AND " : " WHERE ");
-				sqlNode.append("(m.AD_Form_ID IS NULL OR EXISTS (SELECT * FROM AD_Form f WHERE m.AD_Form_ID=f.AD_Form_ID AND ");
-				if (m_clientTree)
-					sqlNode.append("f.Classname");
-				else
-					sqlNode.append("f.JSPURL");
-				sqlNode.append(" IS NOT NULL))");
-			}*/
 		}
-		
-		//	End Dixon Martinez
+		//	End Yamel Senih
 		
 		else
 		{
@@ -794,7 +908,7 @@ public class MTree extends X_AD_Tree {
 							actionColor, onBar, null);	//	menu has no color
 					}
 				}
-				//	Dixon Martinez 2015-01-09 
+				//	Yamel Senih BF[9223372036854775807]
 				//	Add support for custom translate trees
 				else if (getTreeType().equals(TREETYPE_CustomTree) 
 						&& !isSummary
@@ -823,7 +937,7 @@ public class MTree extends X_AD_Tree {
 							actionColor, onBar, null);	//	menu has no color
 					}
 				}
-				//	End Dixon Martinez
+				//	End Yamel Senih
 				
 				else	//	always add
 				{
@@ -929,20 +1043,7 @@ public class MTree extends X_AD_Tree {
 		return TREETYPE_BPartner.equals(getTreeType());
 	}	//	isBPartner
 	
-	//	Yamel Senih, Added method from MTree_Base
-	
-	/**
-	 *  String representation
-	 *  @return info
-	 */
-	/*public String toString()
-	{
-		StringBuffer sb = new StringBuffer("MTree[");
-		sb.append("AD_Tree_ID=").append(getAD_Tree_ID())
-			.append(", Name=").append(getName());
-		sb.append("]");
-		return sb.toString();
-	}*/
+	//	Yamel Senih  FR[ 9223372036854775807 ], Added methods from MTree_Base
 	
 	//	
 	
@@ -1157,7 +1258,6 @@ public class MTree extends X_AD_Tree {
 	 */
 	public String getActionColorName()
 	{
-		//	Dixon Martinez 2015-01-09 
 		//	Add support for custom translate trees
 		//String tableName = getSourceTableName(getTreeType());
 		int AD_Table_ID = getAD_Table_ID();
@@ -1516,6 +1616,75 @@ public class MTree extends X_AD_Tree {
 		return sb.toString ();
 	}	//	toString
 	
-	//	End Yamel Senih
+	//	Dixon Martinez 2015-02-23
+	/**
+	 * 	Add Node to correct tree
+	 *	@param ctx cpntext
+	 *	@param treeType tree type
+	 *	@param Record_ID id
+	 *	@param trxName transaction
+	 *	@return true if node added
+	 */
+	public static boolean addNode (Properties ctx, int Record_ID, MTree m_MTree, String trxName)
+	{
+		//	Get Tree
+		int AD_Tree_ID = 0;
+		MClient client = MClient.get(ctx);
+		MClientInfo ci = client.getInfo();
+		String treeType = m_MTree.getTreeType();
+		
+		if (TREETYPE_Activity.equals(treeType))
+			AD_Tree_ID = ci.getAD_Tree_Activity_ID();
+		else if (TREETYPE_BPartner.equals(treeType))
+			AD_Tree_ID = ci.getAD_Tree_BPartner_ID();
+		else if (TREETYPE_Campaign.equals(treeType))
+			AD_Tree_ID = ci.getAD_Tree_Campaign_ID();
+		else if (TREETYPE_Menu.equals(treeType))
+			AD_Tree_ID = ci.getAD_Tree_Menu_ID();
+		else if (TREETYPE_Organization.equals(treeType))
+			AD_Tree_ID = ci.getAD_Tree_Org_ID();
+		else if (TREETYPE_Product.equals(treeType))
+			AD_Tree_ID = ci.getAD_Tree_Product_ID();
+		else if (TREETYPE_Project.equals(treeType))
+			AD_Tree_ID = ci.getAD_Tree_Project_ID();
+		else if (TREETYPE_SalesRegion.equals(treeType))
+			AD_Tree_ID = ci.getAD_Tree_SalesRegion_ID();
+		else
+			AD_Tree_ID = m_MTree.getAD_Tree_ID();
+		
+		if (AD_Tree_ID == 0)
+			throw new IllegalArgumentException("No Tree found");
+		MTree tree = new MTree(ctx, AD_Tree_ID, trxName);
+		if (tree.get_ID() != AD_Tree_ID)
+			throw new IllegalArgumentException("Tree found AD_Tree_ID=" + AD_Tree_ID);
+
+		//	Insert Tree in correct tree
+		boolean saved = false;
+		if (TREETYPE_Menu.equals(treeType))
+		{
+			MTree_NodeMM node = new MTree_NodeMM (tree, Record_ID);
+			saved = node.save();
+		}
+		else if  (TREETYPE_BPartner.equals(treeType))
+		{
+			MTree_NodeBP node = new MTree_NodeBP (tree, Record_ID);
+			saved = node.save();
+		}
+		else if  (TREETYPE_Product.equals(treeType))
+		{
+			MTree_NodePR node = new MTree_NodePR (tree, Record_ID);
+			saved = node.save();
+		}
+		else
+		{
+			MTree_Node node = new MTree_Node (tree, Record_ID);
+			saved = node.save();
+		}
+		return saved;	
+	}	//	addNode
 	
+	//	End Dixon Martinez
+	
+	
+	//	End Yamel Senih FR[ 9223372036854775807 ]
 }   //  MTree

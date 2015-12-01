@@ -30,8 +30,7 @@ import org.zkoss.zul.Tree;
 /**
  * 
  * @author hengsin
- * @author	<a href="mailto:yamelsenih@gmail.com">Yamel Senih</a>
- *  			<li> Add Support to Dynamic Tree 2013/07/02 16:42:57
+ *
  */
 public class ADTreePanel extends Panel implements EventListener
 {
@@ -50,25 +49,12 @@ public class ADTreePanel extends Panel implements EventListener
     }
     
     /**
-     * Old Constructor
-     * @author <a href="mailto:yamelsenih@gmail.com">Yamel Senih</a> 18/03/2014, 21:22:35
      * @param AD_Tree_ID
      * @param windowNo
-     * @return void
      */
     public void initTree(int AD_Tree_ID, int windowNo) 
-    {	//	Yamel Senih, Add Support to where clause
-    	SimpleTreeModel.initADTree(tree, AD_Tree_ID, windowNo, null);
-    	pnlSearch.initialise();
-    }
-    
-    /**
-     * @param AD_Tree_ID
-     * @param windowNo
-     */
-    public void initTree(int AD_Tree_ID, int windowNo, String whereClause) 
-    {	//	Yamel Senih, Add Support to where clause
-    	SimpleTreeModel.initADTree(tree, AD_Tree_ID, windowNo, whereClause);
+    {
+    	SimpleTreeModel.initADTree(tree, AD_Tree_ID, windowNo);
     	pnlSearch.initialise();
     }
     

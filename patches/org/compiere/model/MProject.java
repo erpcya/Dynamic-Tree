@@ -29,9 +29,11 @@ import org.compiere.util.Env;
  * 	Project Model
  *
  *	@author Jorg Janke
+ *
+ *	@author Yamel Senih, ysenih@erpcya.com, ERPCyA http://www.erpcya.com
+ *  		<li>FR [ 9223372036854775807 ] Add Support to Dynamic Tree
+ *  		@see https://adempiere.atlassian.net/browse/ADEMPIERE-393
  *	@version $Id: MProject.java,v 1.2 2006/07/30 00:51:02 jjanke Exp $
- *	@author<a href="mailto:yamelsenih@gmail.com">Yamel Senih</a>
- *  		<li> Add Support to Dynamic Tree 2013/07/02 16:42:57
  */
 public class MProject extends X_C_Project
 {
@@ -434,7 +436,7 @@ public class MProject extends X_C_Project
 		if (newRecord && success)
 		{
 			insert_Accounting("C_Project_Acct", "C_AcctSchema_Default", null);
-			//	Yamel Senih
+			//	Yamel Senih, FR[ 9223372036854775807 ]
 			//insert_Tree(MTree_Base.TREETYPE_Project);
 			//	End Yamel Senih
 		}
@@ -461,14 +463,14 @@ public class MProject extends X_C_Project
 	 *	@param success
 	 *	@return deleted
 	 */
-	//	Yamel Senih
-	//protected boolean afterDelete (boolean success)
-	//{
-		//if (success)
-			//delete_Tree(MTree_Base.TREETYPE_Project);
-		//return success;
-	//}	//	afterDelete
-	//	End Yamel Senih
+	//	Yamel Senih, FR[ 9223372036854775807 ]
+//	protected boolean afterDelete (boolean success)
+//	{
+//		if (success)
+//			delete_Tree(MTree_Base.TREETYPE_Project);
+//		return success;
+//	}	//	afterDelete
+	
 	/**
 	 * 	Return the Invoices Generated for this Project
 	 *	@return invoices

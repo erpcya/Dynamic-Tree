@@ -24,9 +24,11 @@ import java.util.Properties;
  *	Campaign model
  *	
  *  @author Jorg Janke
+ *  @author Yamel Senih, ysenih@erpcya.com, ERPCyA http://www.erpcya.com
+ *  		<li>FR [ 9223372036854775807 ] Add Support to Dynamic Tree
+ *  		@see https://adempiere.atlassian.net/browse/ADEMPIERE-393
+
  *  @version $Id: MCampaign.java,v 1.3 2006/07/30 00:51:02 jjanke Exp $
- *  @author<a href="mailto:yamelsenih@gmail.com">Yamel Senih</a>
- *  		<li> Add Support to Dynamic Tree 2013/07/02 16:42:57
  */
 public class MCampaign extends X_C_Campaign
 {
@@ -70,10 +72,9 @@ public class MCampaign extends X_C_Campaign
 	{
 		if (!success)
 			return success;
-		//	Yamel Senih
+		//	FR[ 9223372036854775807 ]
 		//if (newRecord)
 			//insert_Tree(MTree_Base.TREETYPE_Campaign);
-		//	End Yamel Senih
 		//	Value/Name change
 		if (!newRecord && (is_ValueChanged("Value") || is_ValueChanged("Name")))
 			MAccount.updateValueDescription(getCtx(), "C_Campaign_ID=" + getC_Campaign_ID(), get_TrxName());
@@ -86,13 +87,12 @@ public class MCampaign extends X_C_Campaign
 	 *	@param success
 	 *	@return deleted
 	 */
-	//	Yamel Senih
+	//	FR[ 9223372036854775807 ]
 	//protected boolean afterDelete (boolean success)
 	//{
 		//if (success)
 			//delete_Tree(MTree_Base.TREETYPE_Campaign);
 		//return success;
 	//}	//	afterDelete
-	//	End Yamel Senih
 
 }	//	MCampaign
