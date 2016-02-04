@@ -983,7 +983,7 @@ DataStatusListener, IADTabpanel, VetoableChangeListener
     				m_OldTree_ID = m_AD_Tree_ID;
             	}			
             }
-            activate(true);
+//            activate(true);
             // End Raul Muñoz
     }
 
