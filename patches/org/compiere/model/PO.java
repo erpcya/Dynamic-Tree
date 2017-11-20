@@ -91,6 +91,9 @@ import org.w3c.dom.Element;
  *			<li>https://sourceforge.net/tracker/?func=detail&aid=2947622&group_id=176962&atid=879332
  * @author<a href="mailto:yamelsenih@gmail.com">Yamel Senih</a>
  *  		<li> Add Support to Dynamic Tree 2013/07/02 16:42:57
+ * @author Carlos Parada, cparada@erpcya.com
+ * 			<li> BR [ 1 ] Don't printStackTrace on Virtual Columns
+ * 			@see https://github.com/erpcya/Dynamic-Tree/issues/1
  */
 public abstract class PO
 	implements Serializable, Comparator, Evaluatee, Cloneable
@@ -1428,11 +1431,12 @@ public abstract class PO
 			}
 			catch (SQLException e)
 			{
-				e.printStackTrace(); // @Trifon - MySQL Port
 				if (p_info.isVirtualColumn(index))	//	if rs constructor used
 					log.log(Level.FINER, "Virtual Column not loaded: " + columnName);
 				else
 				{
+					//BR [ 1 ]
+					e.printStackTrace(); // @Trifon - MySQL Port
 					log.log(Level.SEVERE, "(rs) - " + String.valueOf(index)
 						+ ": " + p_info.getTableName() + "." + p_info.getColumnName(index)
 						+ " (" + p_info.getColumnClass(index) + ") - " + e);
